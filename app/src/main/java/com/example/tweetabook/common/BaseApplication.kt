@@ -1,7 +1,7 @@
-package com.example.tweetabook.commons
+package com.example.tweetabook.common
 
 import android.app.Application
-import com.example.tweetabook.commons.di.CompositionRoot
+import com.example.tweetabook.common.di.CompositionRoot
 
 public class BaseApplication: Application() {
     lateinit var compositionRoot: CompositionRoot

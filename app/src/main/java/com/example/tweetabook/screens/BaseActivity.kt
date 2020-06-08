@@ -2,8 +2,8 @@ package com.example.tweetabook.screens
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.example.tweetabook.commons.BaseApplication
-import com.example.tweetabook.commons.di.ControllerCompositionRoot
+import com.example.tweetabook.common.BaseApplication
+import com.example.tweetabook.common.di.ControllerCompositionRoot
 
 open class BaseActivity: AppCompatActivity() {
     lateinit var controllerCompositionRoot: ControllerCompositionRoot
