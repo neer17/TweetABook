@@ -8,7 +8,7 @@ import com.example.tweetabook.screens.common.screennavigator.ScreenNavigator
 class SingleActivity : BaseActivity(), FragmentFrameWrapper {
     private val TAG = "AppDebug: " + SingleActivity::class.java.simpleName
 
-    private lateinit var screenNavigator: ScreenNavigator
+    lateinit var screenNavigator: ScreenNavigator
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

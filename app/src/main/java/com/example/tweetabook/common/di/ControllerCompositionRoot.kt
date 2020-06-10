@@ -12,8 +12,8 @@ class ControllerCompositionRoot(
     private val compositionRoot: CompositionRoot,
     private val activity: FragmentActivity
 ) {
-    fun getViewMvcFactory(): ViewMvcFactory {
-        return ViewMvcFactory(getLayoutInflater())
+    fun getViewMvcFactory(screenNavigator: ScreenNavigator): ViewMvcFactory {
+        return ViewMvcFactory(getLayoutInflater(), screenNavigator)
     }
 
     private fun getLayoutInflater(): LayoutInflater {
@@ -28,7 +28,7 @@ class ControllerCompositionRoot(
         return ScreenNavigator(activity, savedInstanceState, getFragmentFrameId())
     }
 
-    fun getFragmentFrameId(): Int {
+    private fun getFragmentFrameId(): Int {
         return (activity as FragmentFrameWrapper).getFrameLayout().id
     }
 }

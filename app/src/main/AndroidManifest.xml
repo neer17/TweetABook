@@ -21,6 +21,9 @@
             </intent-filter>
         </activity>
 
+        <activity android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
+            android:theme="@style/Base.Theme.AppCompat"/>
+
         <!--        Firebase cloud functions Service-->
         <service
             android:name=".firebase.MyFirebaseMessagingService"

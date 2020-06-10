@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.example.tweetabook.screens.main.MainFragment
 import com.ncapdevi.fragnav.FragNavController
+import com.theartofdev.edmodo.cropper.CropImage
 
 class ScreenNavigator(
     private val activity: FragmentActivity,
@@ -19,6 +20,11 @@ class ScreenNavigator(
 
     fun navigateToMainFrag() {
         fragNavController.switchTab(FragNavController.TAB1)
+    }
+
+    fun navigateToCameraActivity(fragment: Fragment) {
+        CropImage.activity()
+            .start(activity, fragment);
     }
 
     private fun getFragNavController(savedInstanceState: Bundle?): FragNavController {
