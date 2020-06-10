@@ -5,20 +5,21 @@ import android.view.View
 
 abstract class BaseViewMvc :
     ViewMvc {
-    private var mRootView: View? = null
-    override fun getRootView(): View? {
+   private lateinit var mRootView: View
+
+    override fun getRootView(): View {
         return mRootView
     }
 
-    protected fun setRootView(rootView: View?) {
-        mRootView = rootView
+    protected fun setRootView(rootView: View) {
+        this.mRootView = rootView
     }
 
-    protected fun <T : View?> findViewById(id: Int): T {
-        return getRootView()!!.findViewById(id)
+    protected fun <T : View> findViewById(id: Int): T {
+        return getRootView().findViewById(id)
     }
 
     protected val context: Context
-        protected get() = getRootView()!!.context
+        get() = getRootView().context
 
 }

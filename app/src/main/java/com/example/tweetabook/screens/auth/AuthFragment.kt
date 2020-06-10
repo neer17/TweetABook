@@ -4,29 +4,38 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
-import com.example.tweetabook.R
+import com.example.tweetabook.screens.common.BaseFragment
+import com.example.tweetabook.screens.common.SingleActivity
 
 
-class AuthFragment : Fragment() {
+class AuthFragment : BaseFragment(), AuthViewMvc.Listener {
+    private lateinit var authViewMvc: AuthViewMvcImpl
+
     companion object {
         @JvmStatic
         fun newInstance() =
-            AuthFragment().apply {
-                arguments = Bundle().apply {
-                }
-            }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+            AuthFragment()
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_auth, container, false)
+        authViewMvc =
+            activity!!.let {
+                (it as SingleActivity).controllerCompositionRoot.getViewMvcFactory()
+                    .getAuthViewMvcImpl(container!!)
+            }
+        return authViewMvc.getRootView()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        authViewMvc.registerListener(this)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        authViewMvc.unregisterListener(this)
     }
 }
