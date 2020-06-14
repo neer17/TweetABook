@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import com.example.tweetabook.R
+import com.example.tweetabook.common.di.ControllerCompositionRoot
 import com.example.tweetabook.screens.common.screennavigator.ScreenNavigator
 import com.example.tweetabook.screens.common.views.BaseObservableViewMvc
 import com.example.tweetabook.screens.main.viewmodel.MainViewModel
@@ -20,7 +21,8 @@ class MainViewMvcImpl(
     parent: ViewGroup,
     val screenNavigator: ScreenNavigator,
     private val viewModel: MainViewModel,
-    private val lifecycleOwner: LifecycleOwner
+    private val lifecycleOwner: LifecycleOwner,
+    private val controllerCompositionRoot: ControllerCompositionRoot
 ) : BaseObservableViewMvc<MainViewMvc.Listener>(), MainViewMvc{
     private val TAG = "AppDebug: MainViewMvcImpl"
 
@@ -34,7 +36,12 @@ class MainViewMvcImpl(
 
     private fun observeViewModel() {
         viewModel.downloadUri.observe(lifecycleOwner, Observer {
-            Log.d(TAG, "observeViewModel: download uri: $it")
+           //   send the url to the server
+            viewModel.sendDownloadUrlToServer(it)
+        })
+
+        viewModel.resultString.observe(lifecycleOwner, Observer {
+            Log.d(TAG, "observeViewModel: result string: $it")
         })
     }
 

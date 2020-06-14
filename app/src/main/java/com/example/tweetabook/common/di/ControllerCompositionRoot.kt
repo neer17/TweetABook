@@ -1,5 +1,6 @@
 package com.example.tweetabook.common.di
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import androidx.fragment.app.FragmentActivity
@@ -13,14 +14,14 @@ class ControllerCompositionRoot(
     private val activity: FragmentActivity
 ) {
     fun getViewMvcFactory(screenNavigator: ScreenNavigator): ViewMvcFactory {
-        return ViewMvcFactory(getLayoutInflater(), screenNavigator)
+        return ViewMvcFactory(getLayoutInflater(), screenNavigator, getBackendApi(), this)
     }
 
     private fun getLayoutInflater(): LayoutInflater {
         return LayoutInflater.from(activity)
     }
 
-    fun getBackendApi(): MyBackendApi {
+     fun getBackendApi(): MyBackendApi {
         return compositionRoot.getBackendApi()
     }
 
@@ -30,5 +31,13 @@ class ControllerCompositionRoot(
 
     private fun getFragmentFrameId(): Int {
         return (activity as FragmentFrameWrapper).getFrameLayout().id
+    }
+
+    private fun getContext(): Context {
+        return activity
+    }
+
+    fun getNetworkInfo(): Boolean {
+        return compositionRoot.registerNetworkCallback(getContext())
     }
 }

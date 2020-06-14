@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import com.example.tweetabook.common.di.ControllerCompositionRoot
+import com.example.tweetabook.common.viewmodel.MyViewModelFactory
 import com.example.tweetabook.screens.common.BaseFragment
 import com.example.tweetabook.screens.common.SingleActivity
 import com.example.tweetabook.screens.common.screennavigator.ScreenNavigator
@@ -24,7 +25,8 @@ class MainFragment : BaseFragment(), MainViewMvc.Listener {
         }
     }
 
-    private val mainViewModel: MainViewModel by activityViewModels()
+    private lateinit var mainViewModel: MainViewModel
+
     private lateinit var screenNavigator: ScreenNavigator
     private lateinit var controllerCompositionRoot: ControllerCompositionRoot
     private lateinit var mainViewMvc: MainViewMvc
@@ -36,6 +38,9 @@ class MainFragment : BaseFragment(), MainViewMvc.Listener {
         Log.d(TAG, "onCreateView: ")
 
         controllerCompositionRoot = (activity as SingleActivity).controllerCompositionRoot
+
+        val mainViewModel: MainViewModel by activityViewModels{MyViewModelFactory(controllerCompositionRoot)}
+        this.mainViewModel = mainViewModel
 
         requireActivity().let {
             screenNavigator = (it as SingleActivity).screenNavigator
