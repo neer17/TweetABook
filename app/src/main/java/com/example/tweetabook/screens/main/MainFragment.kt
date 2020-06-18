@@ -6,13 +6,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.activityViewModels
 import com.example.tweetabook.common.di.ControllerCompositionRoot
-import com.example.tweetabook.common.viewmodel.MyViewModelFactory
 import com.example.tweetabook.screens.common.BaseFragment
 import com.example.tweetabook.screens.common.SingleActivity
 import com.example.tweetabook.screens.common.screennavigator.ScreenNavigator
-import com.example.tweetabook.screens.main.viewmodel.MainViewModel
 import com.theartofdev.edmodo.cropper.CropImage
 
 
@@ -24,8 +21,6 @@ class MainFragment : BaseFragment(), MainViewMvc.Listener {
             return MainFragment()
         }
     }
-
-    private lateinit var mainViewModel: MainViewModel
 
     private lateinit var screenNavigator: ScreenNavigator
     private lateinit var controllerCompositionRoot: ControllerCompositionRoot
@@ -39,13 +34,10 @@ class MainFragment : BaseFragment(), MainViewMvc.Listener {
 
         controllerCompositionRoot = (activity as SingleActivity).controllerCompositionRoot
 
-        val mainViewModel: MainViewModel by activityViewModels{MyViewModelFactory(controllerCompositionRoot)}
-        this.mainViewModel = mainViewModel
-
         requireActivity().let {
             screenNavigator = (it as SingleActivity).screenNavigator
             mainViewMvc = controllerCompositionRoot.getViewMvcFactory(screenNavigator)
-                .getMainViewMvcImpl(container!!, mainViewModel, viewLifecycleOwner)
+                .getMainViewMvcImpl(container!!, it.mainViewModel, viewLifecycleOwner)
         }
 
         return mainViewMvc.getRootView()

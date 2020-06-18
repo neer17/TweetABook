@@ -12,6 +12,7 @@ import androidx.lifecycle.Observer
 import com.example.tweetabook.R
 import com.example.tweetabook.common.di.ControllerCompositionRoot
 import com.example.tweetabook.screens.common.screennavigator.ScreenNavigator
+import com.example.tweetabook.screens.common.showToast
 import com.example.tweetabook.screens.common.views.BaseObservableViewMvc
 import com.example.tweetabook.screens.main.viewmodel.MainViewModel
 import com.theartofdev.edmodo.cropper.CropImage
@@ -31,17 +32,18 @@ class MainViewMvcImpl(
         setRootView(inflater.inflate(R.layout.fragment_main, parent, false))
 
         fabBtnClicked()
-        observeViewModel()
+        subscribers()
     }
 
-    private fun observeViewModel() {
+    private fun subscribers() {
         viewModel.downloadUri.observe(lifecycleOwner, Observer {
            //   send the url to the server
             viewModel.sendDownloadUrlToServer(it)
         })
 
-        viewModel.resultString.observe(lifecycleOwner, Observer {
+        viewModel.serverResponse.observe(lifecycleOwner, Observer {
             Log.d(TAG, "observeViewModel: result string: $it")
+            controllerCompositionRoot.getActivity().showToast("Image uploaded and sent to the server")
         })
     }
 

@@ -10,7 +10,9 @@ class MainRepository(private val myBackendApi: MyBackendApi) {
     private val TAG = "AppDebug: MainRepository"
 
     suspend fun uploadFileToStorage(fileUri: Uri): Uri? {
-        return uploadFile(fileUri)
+        val downloadUrl = uploadFile(fileUri)
+        Log.d(TAG, "uploadFileToStorage: download url $downloadUrl")
+        return downloadUrl
     }
 
     fun sendDownloadUrlToServer(downloadUri: Uri): String? {

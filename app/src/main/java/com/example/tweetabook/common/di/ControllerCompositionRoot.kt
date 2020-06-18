@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import androidx.fragment.app.FragmentActivity
 import com.example.tweetabook.api.MyBackendApi
 import com.example.tweetabook.screens.common.FragmentFrameWrapper
+import com.example.tweetabook.screens.common.SingleActivity
 import com.example.tweetabook.screens.common.ViewMvcFactory
 import com.example.tweetabook.screens.common.screennavigator.ScreenNavigator
 
@@ -35,6 +36,10 @@ class ControllerCompositionRoot(
 
     private fun getContext(): Context {
         return activity
+    }
+
+    fun getActivity(): SingleActivity {
+        return activity as SingleActivity
     }
 
     fun getNetworkInfo(): Boolean {
