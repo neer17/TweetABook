@@ -37,7 +37,7 @@ class MainFragment : BaseFragment(), MainViewMvc.Listener {
         requireActivity().let {
             screenNavigator = (it as SingleActivity).screenNavigator
             mainViewMvc = controllerCompositionRoot.getViewMvcFactory(screenNavigator)
-                .getMainViewMvcImpl(container!!, it.mainViewModel, viewLifecycleOwner)
+                .getMainViewMvcImpl(container!!, it.mainViewModel, viewLifecycleOwner, this)
         }
 
         return mainViewMvc.getRootView()

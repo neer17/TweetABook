@@ -19,9 +19,11 @@ class MainViewModel(private val controllerCompositionRoot: ControllerComposition
     val downloadUri = MutableLiveData<Uri>()
     val serverResponse = MutableLiveData<String>()
     val dataState = MutableLiveData<UIEvent>()
+    val totalFiles: MutableLiveData<Int?> = MutableLiveData()
 
     private var mainRepository: MainRepository =
         MainRepository(controllerCompositionRoot.getBackendApi())
+
 
     private fun uploadAndGetDownloadUri(fileUri: Uri) {
         viewModelScope.launch {
@@ -30,6 +32,7 @@ class MainViewModel(private val controllerCompositionRoot: ControllerComposition
             mainRepository.uploadFileToStorage(fileUri)?.let {
                 downloadUri.value = it
             }
+            getFilesCount()
         }
     }
 
@@ -45,6 +48,22 @@ class MainViewModel(private val controllerCompositionRoot: ControllerComposition
         }
     }
 
+    //  update the file count in toolbar
+    fun getFilesCount() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val value =  mainRepository.getFilesCount()
+            withContext(Dispatchers.Main) {
+                totalFiles.value = value
+            }
+        }
+    }
+
+    fun deleteAll() {
+        viewModelScope.launch(Dispatchers.IO) {
+            mainRepository.deleteAll()
+            getFilesCount()
+        }
+    }
 
     //  SETTERS
     fun setFileUri(fileUri: Uri) {

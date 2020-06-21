@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
@@ -16,6 +15,8 @@ import com.example.tweetabook.screens.common.showToast
 import com.example.tweetabook.screens.common.views.BaseObservableViewMvc
 import com.example.tweetabook.screens.main.viewmodel.MainViewModel
 import com.theartofdev.edmodo.cropper.CropImage
+import kotlinx.android.synthetic.main.fragment_main.view.*
+
 
 class MainViewMvcImpl(
     inflater: LayoutInflater,
@@ -23,8 +24,9 @@ class MainViewMvcImpl(
     val screenNavigator: ScreenNavigator,
     private val viewModel: MainViewModel,
     private val lifecycleOwner: LifecycleOwner,
-    private val controllerCompositionRoot: ControllerCompositionRoot
-) : BaseObservableViewMvc<MainViewMvc.Listener>(), MainViewMvc{
+    private val controllerCompositionRoot: ControllerCompositionRoot,
+    private val fragment: MainFragment
+) : BaseObservableViewMvc<MainViewMvc.Listener>(), MainViewMvc {
     private val TAG = "AppDebug: MainViewMvcImpl"
 
     init {
@@ -37,21 +39,22 @@ class MainViewMvcImpl(
 
     private fun subscribers() {
         viewModel.downloadUri.observe(lifecycleOwner, Observer {
-           //   send the url to the server
+            //   send the url to the server
             viewModel.sendDownloadUrlToServer(it)
         })
 
         viewModel.serverResponse.observe(lifecycleOwner, Observer {
             Log.d(TAG, "observeViewModel: result string: $it")
-            controllerCompositionRoot.getActivity().showToast("Image uploaded and sent to the server")
+            controllerCompositionRoot.getActivity()
+                .showToast("Image uploaded and sent to the server")
         })
     }
 
     private fun fabBtnClicked() {
-        findViewById<View>(R.id.fab).setOnClickListener {
-           listeners.forEach {
-               it.onFabBtnClicked()
-           }
+        getRootView().fab.setOnClickListener {
+            listeners.forEach {
+                it.onFabBtnClicked()
+            }
         }
     }
 

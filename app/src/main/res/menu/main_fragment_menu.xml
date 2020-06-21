@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+
+    >
+    <item
+        android:id="@+id/empty_storage"
+        android:title="Empty Storage" />
+
+    <item
+        android:id="@+id/purge_data"
+        android:title="Purge Data" />
+
+</menu>
