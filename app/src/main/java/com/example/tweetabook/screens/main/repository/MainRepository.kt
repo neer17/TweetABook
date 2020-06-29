@@ -1,7 +1,6 @@
 package com.example.tweetabook.screens.main.repository
 
 import android.net.Uri
-import android.util.Log
 import com.example.tweetabook.api.MyBackendApi
 import com.example.tweetabook.firebase.deleteAllFiles
 import com.example.tweetabook.firebase.filesCount
@@ -17,9 +16,7 @@ class MainRepository(
 
 
     suspend fun uploadFileToStorage(fileUri: Uri): Uri? {
-        val downloadUrl = uploadFile(fileUri)
-        Log.d(TAG, "uploadFileToStorage: download url $downloadUrl")
-        return downloadUrl
+        return uploadFile(fileUri)
     }
 
     fun sendDownloadUrlToServer(downloadUri: Uri) {

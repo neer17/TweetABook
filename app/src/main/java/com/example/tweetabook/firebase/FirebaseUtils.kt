@@ -3,6 +3,7 @@ package com.example.tweetabook.firebase
 import android.net.Uri
 import android.util.Log
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.tasks.await
 import java.util.*
@@ -10,15 +11,14 @@ import java.util.*
 private const val TAG = "AppDebug: FirebaseUtils"
 
 val storage = Firebase.storage
-val storageRef = storage.reference.child("images/" + UUID.randomUUID())
-val imagesRef = storage.reference.child("images/")
 
 suspend fun uploadFile(fileUri: Uri): Uri? {
+    val storageRef = getStorageRef()
     val uploadTask = storageRef.putFile(fileUri)
     return try {
         uploadTask.await()
         val downloadUri = storageRef.downloadUrl.await()
-        Log.d(TAG, "uploadFile: image uploaded")
+        Log.d(TAG, "uploadFile: image uploaded, \t download uri $downloadUri")
         downloadUri
     } catch (e: Exception) {
         Log.e(TAG, "uploadFile: ", e)
@@ -27,6 +27,7 @@ suspend fun uploadFile(fileUri: Uri): Uri? {
 }
 
 suspend fun filesCount(): Int? {
+    val imagesRef = getImageRef()
     val getAllFiles = imagesRef.listAll()
     return try {
         val size = getAllFiles.await().items.size
@@ -40,6 +41,7 @@ suspend fun filesCount(): Int? {
 
 suspend fun deleteAllFiles(): Boolean {
     return try {
+        val imagesRef = getImageRef()
         val allFiles = imagesRef.listAll().await()
 
         allFiles.items.forEach {
@@ -53,3 +55,8 @@ suspend fun deleteAllFiles(): Boolean {
         false
     }
 }
+
+private fun getImageRef() = storage.reference.child("images/")
+
+private fun getStorageRef(): StorageReference =
+    storage.reference.child("images/" + UUID.randomUUID())
