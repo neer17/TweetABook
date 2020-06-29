@@ -1,4 +1,8 @@
 package com.example.tweetabook.api.responses
 
-data class BackendResponse(val response: String) {
+import com.google.gson.annotations.SerializedName
+
+data class BackendResponse(
+    @SerializedName("response")
+    val response: String) {
 }

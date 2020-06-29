@@ -6,10 +6,15 @@ import com.example.tweetabook.api.MyBackendApi
 import com.example.tweetabook.firebase.deleteAllFiles
 import com.example.tweetabook.firebase.filesCount
 import com.example.tweetabook.firebase.uploadFile
+import com.example.tweetabook.socket.MySocket
 import com.google.gson.JsonObject
 
-class MainRepository(private val myBackendApi: MyBackendApi) {
+class MainRepository(
+    private val myBackendApi: MyBackendApi,
+    private val mySocket: MySocket
+) {
     private val TAG = "AppDebug: MainRepository"
+
 
     suspend fun uploadFileToStorage(fileUri: Uri): Uri? {
         val downloadUrl = uploadFile(fileUri)
@@ -17,18 +22,11 @@ class MainRepository(private val myBackendApi: MyBackendApi) {
         return downloadUrl
     }
 
-    suspend fun sendDownloadUrlToServer(downloadUri: Uri): String? {
-        return downloadUri.let {
+    fun sendDownloadUrlToServer(downloadUri: Uri) {
+        downloadUri.let {
             val json = JsonObject()
-            json.addProperty("url", it.toString())
-            val response = myBackendApi.sendDownloadUrl(json).execute()
-            Log.d(TAG, "sendDownloadUrlToServer: response.body: ${response.body()}")
-            if (!response.isSuccessful) {
-                Log.e(TAG, "sendDownloadUrlToServer: ", Throwable(response.errorBody().toString()))
-                return null
-            }
-
-            response.body()!!.response
+            json.addProperty("uri", it.toString())
+            socketEmitEvent(json)
         }
     }
 
@@ -39,4 +37,19 @@ class MainRepository(private val myBackendApi: MyBackendApi) {
     suspend fun deleteAll() {
         deleteAllFiles()
     }
+
+
+    //  SOCKET.IO
+    private fun socketEmitEvent(json: JsonObject) {
+        mySocket.socketEmitEvent(json)
+    }
+
+    fun socketIOConnection() {
+        mySocket.socketIOConnection()
+    }
+
+    fun socketIODisconnection() {
+        mySocket.socketIODisconnection()
+    }
+
 }

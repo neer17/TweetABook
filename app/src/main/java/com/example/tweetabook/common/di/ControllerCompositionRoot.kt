@@ -9,6 +9,7 @@ import com.example.tweetabook.screens.common.FragmentFrameWrapper
 import com.example.tweetabook.screens.common.SingleActivity
 import com.example.tweetabook.screens.common.ViewMvcFactory
 import com.example.tweetabook.screens.common.screennavigator.ScreenNavigator
+import com.example.tweetabook.socket.MySocket
 
 class ControllerCompositionRoot(
     private val compositionRoot: CompositionRoot,
@@ -45,4 +46,6 @@ class ControllerCompositionRoot(
     fun getNetworkInfo(): Boolean {
         return compositionRoot.registerNetworkCallback(getContext())
     }
+
+    fun getMySocket() : MySocket = compositionRoot.getMySocket()
 }

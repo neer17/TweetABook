@@ -46,11 +46,13 @@ class MainFragment : BaseFragment(), MainViewMvc.Listener {
     override fun onStart() {
         super.onStart()
         mainViewMvc.registerListener(this)
+        mainViewMvc.onFragmentStart()
     }
 
     override fun onStop() {
         super.onStop()
         mainViewMvc.unregisterListener(this)
+        mainViewMvc.onFragmentStop()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

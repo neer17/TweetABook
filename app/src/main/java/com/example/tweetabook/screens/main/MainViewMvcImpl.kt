@@ -72,4 +72,12 @@ class MainViewMvcImpl(
             }
         }
     }
+
+    override fun onFragmentStart() {
+        viewModel.socketIOConnection()
+    }
+
+    override fun onFragmentStop() {
+        viewModel.socketIODisconnection()
+    }
 }

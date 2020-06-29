@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tweetabook.common.UIEvent
 import com.example.tweetabook.common.di.ControllerCompositionRoot
-import com.example.tweetabook.screens.common.showProgressBar
+import com.example.tweetabook.screens.common.SingleActivity
 import com.example.tweetabook.screens.main.repository.MainRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -22,36 +22,32 @@ class MainViewModel(private val controllerCompositionRoot: ControllerComposition
     val totalFiles: MutableLiveData<Int?> = MutableLiveData()
 
     private var mainRepository: MainRepository =
-        MainRepository(controllerCompositionRoot.getBackendApi())
+        MainRepository(controllerCompositionRoot.getBackendApi(), controllerCompositionRoot.getMySocket())
 
 
     private fun uploadAndGetDownloadUri(fileUri: Uri) {
         viewModelScope.launch {
-            controllerCompositionRoot.getActivity().showProgressBar(true)
-
+            showProgressBar()
             mainRepository.uploadFileToStorage(fileUri)?.let {
                 downloadUri.value = it
             }
             getFilesCount()
+            hideProgressBar()
         }
     }
 
     fun sendDownloadUrlToServer(downloadUri: Uri) {
         viewModelScope.launch(Dispatchers.IO) {
-            val result = mainRepository.sendDownloadUrlToServer(downloadUri)
-            withContext(Dispatchers.Main) {
-                result?.let {
-                    controllerCompositionRoot.getActivity().showProgressBar(false)
-                    serverResponse.value = it
-                }
-            }
+            showProgressBar()
+            mainRepository.sendDownloadUrlToServer(downloadUri)
+            hideProgressBar()
         }
     }
 
     //  update the file count in toolbar
     fun getFilesCount() {
         viewModelScope.launch(Dispatchers.IO) {
-            val value =  mainRepository.getFilesCount()
+            val value = mainRepository.getFilesCount()
             withContext(Dispatchers.Main) {
                 totalFiles.value = value
             }
@@ -65,8 +61,39 @@ class MainViewModel(private val controllerCompositionRoot: ControllerComposition
         }
     }
 
+
+    //  SOCKET.IO
+    fun socketIOConnection() {
+        viewModelScope.launch(Dispatchers.IO) {
+            mainRepository.socketIOConnection()
+        }
+    }
+
+    fun socketIODisconnection() {
+        viewModelScope.launch(Dispatchers.IO) {
+            mainRepository.socketIODisconnection()
+        }
+    }
+
+
     //  SETTERS
     fun setFileUri(fileUri: Uri) {
         uploadAndGetDownloadUri(fileUri)
+    }
+
+
+    //  from controller composition
+    private fun getContext(): SingleActivity {
+        return controllerCompositionRoot.getActivity()
+    }
+
+
+    //  calls to UIChangeListener
+    private fun showProgressBar() {
+        getContext().showProgressBar()
+    }
+
+    private fun hideProgressBar() {
+        getContext().hideProgressBar()
     }
 }

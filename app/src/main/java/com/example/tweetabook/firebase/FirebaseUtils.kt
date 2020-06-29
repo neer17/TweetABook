@@ -17,7 +17,9 @@ suspend fun uploadFile(fileUri: Uri): Uri? {
     val uploadTask = storageRef.putFile(fileUri)
     return try {
         uploadTask.await()
-        storageRef.downloadUrl.await()
+        val downloadUri = storageRef.downloadUrl.await()
+        Log.d(TAG, "uploadFile: image uploaded")
+        downloadUri
     } catch (e: Exception) {
         Log.e(TAG, "uploadFile: ", e)
         null
