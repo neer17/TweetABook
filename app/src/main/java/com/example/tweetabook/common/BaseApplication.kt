@@ -10,7 +10,4 @@ public class BaseApplication: Application() {
         super.onCreate()
         compositionRoot = CompositionRoot()
     }
-
-
-
 }

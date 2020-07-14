@@ -2,6 +2,7 @@ package com.example.tweetabook.screens.main
 
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -47,6 +48,7 @@ class MyAdapter(adapterOnClickListener: AdapterOnClickListener) : RecyclerView.A
         if (payloads.firstOrNull() != null) {
             with(holder.itemView) {
                 (payloads.first() as Bundle).getDouble("progress").also {progress ->
+                    Log.d(TAG, "bindViewHolder: position: $position \n progress: $progress")
                     if (progress == 1.0) {
                         holder.itemView.foreground = ColorDrawable(resources.getColor(android.R.color.transparent))
                         progress_bar.visibility = View.GONE

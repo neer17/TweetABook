@@ -17,6 +17,10 @@ import com.example.tweetabook.screens.main.viewmodel.MainViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.theartofdev.edmodo.cropper.CropImage
 import kotlinx.android.synthetic.main.fragment_main.view.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.util.*
 
 class MainViewMvcImpl(
@@ -28,6 +32,9 @@ class MainViewMvcImpl(
     private val fragment: MainFragment
 ) : BaseObservableViewMvc<MainViewMvc.Listener>(), MainViewMvc, MyAdapter.AdapterOnClickListener {
     private val TAG = "AppDebug: MainViewMvcImpl"
+
+    private val job = Job()
+    val mainImplScope = CoroutineScope(job)
 
     private lateinit var adapter: MyAdapter
 
@@ -41,11 +48,13 @@ class MainViewMvcImpl(
 
     private fun subscribers() {
         viewModel.serverResponse.observe(getViewLifecycleOwner(), Observer {
-            Log.d(TAG, "subscribers: serverResponse: $it")
 
+            Log.d(TAG, "subscribers: $it")
             //  changing progress in adapter
             val (id, progress, status, tweet) = it
-            adapter.updateProgress(id, progress, status, tweet)
+            mainImplScope.launch(Dispatchers.Main) {
+                adapter.updateProgress(id, progress, status, tweet)
+            }
         })
     }
 
@@ -78,17 +87,15 @@ class MainViewMvcImpl(
     }
 
     override fun onClickTweetItem(position: Int) {
-        val (_, _, _, tweet)= adapter.data[position]
+        val (_, _, _, tweet) = adapter.data[position]
         tweet?.let {
             MaterialAlertDialogBuilder(getContext())
                 .setTitle("Do you want to tweet it?")
                 .setMessage(tweet)
-                .setPositiveButton("Confirm"){
-                        dialog, which ->
+                .setPositiveButton("Confirm") { dialog, which ->
                     //  tweet it
                 }
-                .setNegativeButton("Cancel"){
-                        dialog, which ->
+                .setNegativeButton("Cancel") { dialog, which ->
                     dialog.dismiss()
                 }
                 .show()

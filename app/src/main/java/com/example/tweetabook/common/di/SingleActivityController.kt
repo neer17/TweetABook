@@ -9,15 +9,12 @@ import com.example.tweetabook.screens.common.FragmentFrameWrapper
 import com.example.tweetabook.screens.common.SingleActivity
 import com.example.tweetabook.screens.common.ViewMvcFactory
 import com.example.tweetabook.screens.common.screennavigator.ScreenNavigator
-import com.example.tweetabook.socket.MySocket
 
 class SingleActivityController(
     private val compositionRoot: CompositionRoot,
     private val activity: FragmentActivity
 ) {
-    val mySocket: MySocket by lazy {
-        MySocket()
-    }
+    val mySocket = compositionRoot.mySocket
 
     fun getViewMvcFactory(screenNavigator: ScreenNavigator): ViewMvcFactory {
         return ViewMvcFactory(getLayoutInflater(), screenNavigator, getBackendApi(), this)

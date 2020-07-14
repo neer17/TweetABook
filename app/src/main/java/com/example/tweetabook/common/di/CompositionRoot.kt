@@ -6,6 +6,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import com.example.tweetabook.api.MyBackendApi
 import com.example.tweetabook.common.Constants
+import com.example.tweetabook.socket.MySocket
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
@@ -17,6 +18,10 @@ import java.util.concurrent.TimeUnit
 
 
 public class CompositionRoot {
+
+    val mySocket: MySocket by lazy {
+        MySocket()
+    }
 
     private fun getGsonBuilder(): Gson {
         return GsonBuilder().setLenient()
