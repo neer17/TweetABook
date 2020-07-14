@@ -10,7 +10,4 @@ interface MainViewMvc: ObservableViewMvc<MainViewMvc.Listener>{
     }
 
     fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?)
-
-    fun onFragmentStop()
-    fun onFragmentStart()
 }

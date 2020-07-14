@@ -11,10 +11,14 @@ import com.example.tweetabook.screens.common.ViewMvcFactory
 import com.example.tweetabook.screens.common.screennavigator.ScreenNavigator
 import com.example.tweetabook.socket.MySocket
 
-class ControllerCompositionRoot(
+class SingleActivityController(
     private val compositionRoot: CompositionRoot,
     private val activity: FragmentActivity
 ) {
+    val mySocket: MySocket by lazy {
+        MySocket()
+    }
+
     fun getViewMvcFactory(screenNavigator: ScreenNavigator): ViewMvcFactory {
         return ViewMvcFactory(getLayoutInflater(), screenNavigator, getBackendApi(), this)
     }
@@ -47,5 +51,5 @@ class ControllerCompositionRoot(
         return compositionRoot.registerNetworkCallback(getContext())
     }
 
-    fun getMySocket() : MySocket = compositionRoot.getMySocket()
+    fun getViewLifecycleOwner(): SingleActivity = getActivity()
 }

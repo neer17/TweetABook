@@ -1,12 +1,15 @@
 package com.example.tweetabook.screens.main.repository
 
 import android.net.Uri
+import androidx.lifecycle.LiveData
 import com.example.tweetabook.api.MyBackendApi
 import com.example.tweetabook.firebase.deleteAllFiles
 import com.example.tweetabook.firebase.filesCount
 import com.example.tweetabook.firebase.uploadFile
 import com.example.tweetabook.socket.MySocket
+import com.example.tweetabook.socket.responses.ServerResponse
 import com.google.gson.JsonObject
+
 
 class MainRepository(
     private val myBackendApi: MyBackendApi,
@@ -14,14 +17,20 @@ class MainRepository(
 ) {
     private val TAG = "AppDebug: MainRepository"
 
-
-    suspend fun uploadFileToStorage(fileUri: Uri): Uri? {
-        return uploadFile(fileUri)
+    suspend fun uploadedImageAndSendDownloadUriToServer(
+        id: String,
+        fileUri: Uri
+    ){
+        val downloadUri = uploadFile(fileUri)
+        downloadUri?.let {
+            sendDownloadUrlToServer(id, it)
+        }
     }
 
-    fun sendDownloadUrlToServer(downloadUri: Uri) {
+    private fun sendDownloadUrlToServer(id: String, downloadUri: Uri) {
         downloadUri.let {
             val json = JsonObject()
+            json.addProperty("id", id)
             json.addProperty("uri", it.toString())
             socketEmitEvent(json)
         }
@@ -41,12 +50,7 @@ class MainRepository(
         mySocket.socketEmitEvent(json)
     }
 
-    fun socketIOConnection() {
-        mySocket.socketIOConnection()
+    fun socketResponse(): LiveData<ServerResponse> {
+        return mySocket.socketResponse
     }
-
-    fun socketIODisconnection() {
-        mySocket.socketIODisconnection()
-    }
-
 }

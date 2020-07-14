@@ -3,15 +3,15 @@ package com.example.tweetabook.screens.common
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.example.tweetabook.common.BaseApplication
-import com.example.tweetabook.common.di.ControllerCompositionRoot
+import com.example.tweetabook.common.di.SingleActivityController
 
 open class BaseActivity: AppCompatActivity(), UIChangeListener {
-    lateinit var controllerCompositionRoot: ControllerCompositionRoot
+    lateinit var singleActivityController: SingleActivityController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val compositionRoot = (application as BaseApplication).compositionRoot
-        controllerCompositionRoot = ControllerCompositionRoot(compositionRoot, this)
+        singleActivityController = SingleActivityController(compositionRoot, this)
     }
 
     override fun showProgressBar() {

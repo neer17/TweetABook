@@ -5,12 +5,15 @@ import android.view.View
 import android.widget.FrameLayout
 import androidx.activity.viewModels
 import androidx.appcompat.widget.Toolbar
+import androidx.lifecycle.Observer
 import com.example.tweetabook.R
 import com.example.tweetabook.common.viewmodel.MyViewModelFactory
 import com.example.tweetabook.screens.common.screennavigator.ScreenNavigator
 import com.example.tweetabook.screens.main.viewmodel.MainViewModel
 import kotlinx.android.synthetic.main.activity_single.*
 import kotlinx.android.synthetic.main.toolbar.view.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 
 class SingleActivity : BaseActivity(), FragmentFrameWrapper {
     private val TAG = "AppDebug: " + SingleActivity::class.java.simpleName
@@ -19,26 +22,36 @@ class SingleActivity : BaseActivity(), FragmentFrameWrapper {
     lateinit var screenNavigator: ScreenNavigator
     lateinit var mainViewModel: MainViewModel
 
+    val scope = CoroutineScope(Job())
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_single)
 
-        instantiateViewModel()
         attachMenuOnToolbar()
 
-        screenNavigator = controllerCompositionRoot.getScreenNavigator(savedInstanceState)
+        screenNavigator = singleActivityController.getScreenNavigator(savedInstanceState)
         screenNavigator.navigateToMainFrag()
 
+        socketIOConnection()
+        instantiateViewModel()
         subscribe()
     }
+
+
 
     override fun onStart() {
         super.onStart()
         mainViewModel.getFilesCount()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        socketIODisconnection()
+    }
+
     private fun subscribe() {
-       mainViewModel.totalFiles.observe(this, androidx.lifecycle.Observer {totalFiles ->
+       mainViewModel.totalFiles.observe(this, Observer {totalFiles ->
            totalFiles?.let {
                toolbar.toolbar_count_tv.text = totalFiles.toString()
            }
@@ -57,7 +70,7 @@ class SingleActivity : BaseActivity(), FragmentFrameWrapper {
     private fun instantiateViewModel() {
         val mainViewModel: MainViewModel by viewModels {
             MyViewModelFactory(
-                controllerCompositionRoot
+                singleActivityController
             )
         }
         this.mainViewModel = mainViewModel
@@ -83,5 +96,15 @@ class SingleActivity : BaseActivity(), FragmentFrameWrapper {
             true
         }
         else -> false
+    }
+
+
+    //  Socket.IO
+    private fun socketIOConnection() {
+        singleActivityController.mySocket.socketIOConnection()
+    }
+
+    private fun socketIODisconnection() {
+        singleActivityController.mySocket.socketIODisconnection()
     }
 }

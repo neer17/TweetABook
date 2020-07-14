@@ -18,7 +18,7 @@ suspend fun uploadFile(fileUri: Uri): Uri? {
     return try {
         uploadTask.await()
         val downloadUri = storageRef.downloadUrl.await()
-        Log.d(TAG, "uploadFile: image uploaded, \t download uri $downloadUri")
+//        Log.d(TAG, "uploadFile: image uploaded, \t download uri $downloadUri")
         downloadUri
     } catch (e: Exception) {
         Log.e(TAG, "uploadFile: ", e)
@@ -31,7 +31,6 @@ suspend fun filesCount(): Int? {
     val getAllFiles = imagesRef.listAll()
     return try {
         val size = getAllFiles.await().items.size
-        Log.d(TAG, "filesCount: total files in storage: $size")
         size
     } catch (e: Exception) {
         Log.e(TAG, "filesCount: ", e)
@@ -45,7 +44,6 @@ suspend fun deleteAllFiles(): Boolean {
         val allFiles = imagesRef.listAll().await()
 
         allFiles.items.forEach {
-            Log.d(TAG, "deleteAllFiles: storage ref $it")
             val deleteAll = it.delete()
             deleteAll.await()   //  return null
         }

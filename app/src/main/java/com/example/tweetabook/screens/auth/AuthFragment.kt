@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.tweetabook.common.di.ControllerCompositionRoot
+import com.example.tweetabook.common.di.SingleActivityController
 import com.example.tweetabook.screens.common.BaseFragment
 import com.example.tweetabook.screens.common.SingleActivity
 import com.example.tweetabook.screens.common.screennavigator.ScreenNavigator
@@ -18,19 +18,19 @@ class AuthFragment : BaseFragment(), AuthViewMvc.Listener {
     }
 
     private lateinit var screenNavigator: ScreenNavigator
-    private lateinit var controllerCompositionRoot: ControllerCompositionRoot
+    private lateinit var singleActivityController: SingleActivityController
     private lateinit var authViewMvc: AuthViewMvcImpl
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        controllerCompositionRoot = (activity as SingleActivity).controllerCompositionRoot
+        singleActivityController = (activity as SingleActivity).singleActivityController
 
         authViewMvc =
-            activity!!.let {
+            requireActivity().let {
                 screenNavigator = (it as SingleActivity).screenNavigator
-                controllerCompositionRoot.getViewMvcFactory(screenNavigator)
+                singleActivityController.getViewMvcFactory(screenNavigator)
                     .getAuthViewMvcImpl(container!!)
             }
         return authViewMvc.getRootView()

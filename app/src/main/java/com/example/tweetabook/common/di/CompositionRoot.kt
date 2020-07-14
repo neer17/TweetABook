@@ -6,7 +6,6 @@ import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import com.example.tweetabook.api.MyBackendApi
 import com.example.tweetabook.common.Constants
-import com.example.tweetabook.socket.MySocket
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
@@ -57,8 +56,4 @@ public class CompositionRoot {
         val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
         return activeNetwork?.isConnectedOrConnecting == true
     }
-
-
-    //  SOCKET.IO
-    fun getMySocket(): MySocket = MySocket()
 }

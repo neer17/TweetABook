@@ -6,7 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.tweetabook.common.di.ControllerCompositionRoot
+import com.example.tweetabook.common.di.SingleActivityController
 import com.example.tweetabook.screens.common.BaseFragment
 import com.example.tweetabook.screens.common.SingleActivity
 import com.example.tweetabook.screens.common.screennavigator.ScreenNavigator
@@ -23,7 +23,7 @@ class MainFragment : BaseFragment(), MainViewMvc.Listener {
     }
 
     private lateinit var screenNavigator: ScreenNavigator
-    private lateinit var controllerCompositionRoot: ControllerCompositionRoot
+    private lateinit var singleActivityController: SingleActivityController
     private lateinit var mainViewMvc: MainViewMvc
 
     override fun onCreateView(
@@ -32,12 +32,12 @@ class MainFragment : BaseFragment(), MainViewMvc.Listener {
     ): View? {
         Log.d(TAG, "onCreateView: ")
 
-        controllerCompositionRoot = (activity as SingleActivity).controllerCompositionRoot
+        singleActivityController = (activity as SingleActivity).singleActivityController
 
         requireActivity().let {
             screenNavigator = (it as SingleActivity).screenNavigator
-            mainViewMvc = controllerCompositionRoot.getViewMvcFactory(screenNavigator)
-                .getMainViewMvcImpl(container!!, it.mainViewModel, viewLifecycleOwner, this)
+            mainViewMvc = singleActivityController.getViewMvcFactory(screenNavigator)
+                .getMainViewMvcImpl(container!!, it.mainViewModel,this)
         }
 
         return mainViewMvc.getRootView()
@@ -46,13 +46,11 @@ class MainFragment : BaseFragment(), MainViewMvc.Listener {
     override fun onStart() {
         super.onStart()
         mainViewMvc.registerListener(this)
-        mainViewMvc.onFragmentStart()
     }
 
     override fun onStop() {
         super.onStop()
         mainViewMvc.unregisterListener(this)
-        mainViewMvc.onFragmentStop()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
