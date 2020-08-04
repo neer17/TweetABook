@@ -1,48 +1,14 @@
 package com.example.tweetabook.screens.auth
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import com.example.tweetabook.common.di.SingleActivityController
-import com.example.tweetabook.screens.common.BaseFragment
-import com.example.tweetabook.screens.common.SingleActivity
-import com.example.tweetabook.screens.common.screennavigator.ScreenNavigator
+import androidx.fragment.app.Fragment
+import com.example.tweetabook.R
 
 
-class AuthFragment : BaseFragment(), AuthViewMvc.Listener {
+class AuthFragment: Fragment(R.layout.fragment_auth) {
+    private val TAG = "AppDebug: AuthFragment "
+
     companion object {
         @JvmStatic
-        fun newInstance() =
-            AuthFragment()
-    }
-
-    private lateinit var screenNavigator: ScreenNavigator
-    private lateinit var singleActivityController: SingleActivityController
-    private lateinit var authViewMvc: AuthViewMvcImpl
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        singleActivityController = (activity as SingleActivity).singleActivityController
-
-        authViewMvc =
-            requireActivity().let {
-                screenNavigator = (it as SingleActivity).screenNavigator
-                singleActivityController.getViewMvcFactory(screenNavigator)
-                    .getAuthViewMvcImpl(container!!)
-            }
-        return authViewMvc.getRootView()
-    }
-
-    override fun onStart() {
-        super.onStart()
-        authViewMvc.registerListener(this)
-    }
-
-    override fun onStop() {
-        super.onStop()
-        authViewMvc.unregisterListener(this)
+        fun newInstance() = AuthFragment()
     }
 }

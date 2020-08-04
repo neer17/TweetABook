@@ -2,78 +2,49 @@ package com.example.tweetabook.screens.common
 
 import android.os.Bundle
 import android.view.View
-import android.widget.FrameLayout
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.Observer
 import com.example.tweetabook.R
-import com.example.tweetabook.common.viewmodel.MyViewModelFactory
-import com.example.tweetabook.screens.common.screennavigator.ScreenNavigator
+import com.example.tweetabook.screens.main.MainFragment
 import com.example.tweetabook.screens.main.viewmodel.MainViewModel
-import kotlinx.android.synthetic.main.activity_single.*
+import com.example.tweetabook.socket.MySocket
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.toolbar.view.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import javax.inject.Inject
 
-class SingleActivity : BaseActivity(), FragmentFrameWrapper {
+@AndroidEntryPoint
+class SingleActivity : AppCompatActivity() {
     private val TAG = "AppDebug: " + SingleActivity::class.java.simpleName
 
-    private lateinit var toolbar: Toolbar
-    lateinit var screenNavigator: ScreenNavigator
-    lateinit var mainViewModel: MainViewModel
+    @Inject
+    lateinit var mySocket: MySocket
 
-    val scope = CoroutineScope(Job())
+    private lateinit var toolbar: Toolbar
+
+    val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_single)
 
+        if (savedInstanceState == null)
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, MainFragment::class.java, null, "MainFragment")
+                .commit()
+
         attachMenuOnToolbar()
-
-        screenNavigator = singleActivityController.getScreenNavigator(savedInstanceState)
-        screenNavigator.navigateToMainFrag()
-
         socketIOConnection()
-        instantiateViewModel()
         subscribe()
     }
 
-
-
-    override fun onStart() {
-        super.onStart()
-        mainViewModel.getFilesCount()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        socketIODisconnection()
-    }
-
     private fun subscribe() {
-       mainViewModel.totalFiles.observe(this, Observer {totalFiles ->
-           totalFiles?.let {
-               toolbar.toolbar_count_tv.text = totalFiles.toString()
-           }
-       })
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        screenNavigator.saveInstanceState(outState)
-    }
-
-    override fun getFrameLayout(): FrameLayout {
-        return frame_content
-    }
-
-    private fun instantiateViewModel() {
-        val mainViewModel: MainViewModel by viewModels {
-            MyViewModelFactory(
-                singleActivityController
-            )
-        }
-        this.mainViewModel = mainViewModel
+        viewModel.totalFiles.observe(this, Observer { totalFiles ->
+            totalFiles?.let {
+                toolbar.toolbar_count_tv.text = totalFiles.toString()
+            }
+        })
     }
 
     private fun attachMenuOnToolbar() {
@@ -88,7 +59,7 @@ class SingleActivity : BaseActivity(), FragmentFrameWrapper {
 
     private fun menuOnItemClick(id: Int): Boolean = when (id) {
         R.id.empty_storage -> {
-            mainViewModel.deleteAll()
+            viewModel.deleteAll()
             true
         }
         R.id.purge_data -> {
@@ -98,13 +69,22 @@ class SingleActivity : BaseActivity(), FragmentFrameWrapper {
         else -> false
     }
 
+    override fun onStart() {
+        super.onStart()
+        viewModel.getFilesCount()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        socketIODisconnection()
+    }
 
     //  Socket.IO
     private fun socketIOConnection() {
-        singleActivityController.mySocket.socketIOConnection()
+        mySocket.socketIOConnection()
     }
 
     private fun socketIODisconnection() {
-        singleActivityController.mySocket.socketIODisconnection()
+        mySocket.socketIODisconnection()
     }
 }

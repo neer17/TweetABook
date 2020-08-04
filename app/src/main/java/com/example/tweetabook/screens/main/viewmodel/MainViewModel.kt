@@ -1,28 +1,32 @@
 package com.example.tweetabook.screens.main.viewmodel
 
+import android.content.Context
 import android.net.Uri
+import androidx.hilt.Assisted
+import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.tweetabook.common.di.SingleActivityController
-import com.example.tweetabook.screens.common.SingleActivity
+import com.example.tweetabook.screens.common.showProgressBar
 import com.example.tweetabook.screens.main.repository.MainRepository
+import dagger.hilt.android.qualifiers.ActivityContext
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class MainViewModel(private val singleActivityController: SingleActivityController) :
-    ViewModel() {
+class MainViewModel
+@ViewModelInject
+constructor(
+    @Assisted private val savedStateHandle: SavedStateHandle,
+    @ActivityContext private val context: Context,
+    private val mainRepository: MainRepository
+) : ViewModel() {
     private val TAG = "AppDebug: MainViewModel"
 
     //  LIVE DATA
     val totalFiles: MutableLiveData<Int?> = MutableLiveData()
-
-    private var mainRepository: MainRepository = MainRepository(
-        singleActivityController.getBackendApi(),
-        singleActivityController.mySocket
-    )
 
     val serverResponse = mainRepository.socketResponse()
 
@@ -53,23 +57,15 @@ class MainViewModel(private val singleActivityController: SingleActivityControll
         }
     }
 
-
-    //  from mainFragmentController
-    private fun getContext(): SingleActivity {
-        return singleActivityController.getActivity()
-    }
-
-
-    //  calls to UIChangeListener
     private suspend fun showProgressBar() {
         withContext(Main) {
-            getContext().showProgressBar()
+            context.showProgressBar(true)
         }
     }
 
     private suspend fun hideProgressBar() {
         withContext(Main) {
-            getContext().hideProgressBar()
+            context.showProgressBar(false)
         }
     }
 }

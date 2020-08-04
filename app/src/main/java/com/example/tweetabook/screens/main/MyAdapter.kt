@@ -13,9 +13,13 @@ import com.example.tweetabook.common.Constants
 import com.example.tweetabook.screens.main.responses.TweetResponse
 import kotlinx.android.synthetic.main.tweet_card.view.*
 import java.util.*
+import javax.inject.Inject
 import kotlin.math.roundToInt
 
-class MyAdapter(adapterOnClickListener: AdapterOnClickListener) : RecyclerView.Adapter<MyAdapter.MyViewHolderClass>() {
+class MyAdapter
+@Inject
+constructor(adapterOnClickListener: AdapterOnClickListener) :
+    RecyclerView.Adapter<MyAdapter.MyViewHolderClass>() {
     private val TAG = "AppDebug: MyAdapter"
 
     interface AdapterOnClickListener {
@@ -47,14 +51,16 @@ class MyAdapter(adapterOnClickListener: AdapterOnClickListener) : RecyclerView.A
         super.onBindViewHolder(holder, position, payloads)
         if (payloads.firstOrNull() != null) {
             with(holder.itemView) {
-                (payloads.first() as Bundle).getDouble("progress").also {progress ->
+                (payloads.first() as Bundle).getDouble("progress").also { progress ->
                     Log.d(TAG, "bindViewHolder: position: $position \n progress: $progress")
                     if (progress == 1.0) {
-                        holder.itemView.foreground = ColorDrawable(resources.getColor(android.R.color.transparent))
+                        holder.itemView.foreground =
+                            ColorDrawable(resources.getColor(android.R.color.transparent))
                         progress_bar.visibility = View.GONE
 
                     } else {
-                        holder.itemView.foreground = ColorDrawable(resources.getColor(R.color.image_conversion_pending))
+                        holder.itemView.foreground =
+                            ColorDrawable(resources.getColor(R.color.image_conversion_pending))
                         progress_bar.progress = (progress * 100).roundToInt()
                     }
                 }
@@ -87,8 +93,7 @@ class MyAdapter(adapterOnClickListener: AdapterOnClickListener) : RecyclerView.A
             notifyItemChanged(position, Bundle().apply {
                 putDouble("progress", progress)
             })
-        }
-        else if (status == Constants.IMAGE_CONVERSION_COMPLETED) {
+        } else if (status == Constants.IMAGE_CONVERSION_COMPLETED) {
             tweet?.let {
                 data[position].tweet = it
             }

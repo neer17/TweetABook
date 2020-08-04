@@ -15,7 +15,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.net.URISyntaxException
 
-class MySocket {
+class MySocket() {
     private val TAG = "AppDebug: MySocket"
 
     private var socket: Socket = IO.socket(Constants.BASE_URL)
@@ -29,9 +29,9 @@ class MySocket {
         val serverResponse =
             Gson().fromJson<ServerResponse>(args[0] as String, ServerResponse::class.java)
 
-         socketScope.launch(Dispatchers.Main) {
-             socketResponse.value = serverResponse
-         }
+        socketScope.launch(Dispatchers.Main) {
+            socketResponse.value = serverResponse
+        }
     }
 
     //  LIVE DATA

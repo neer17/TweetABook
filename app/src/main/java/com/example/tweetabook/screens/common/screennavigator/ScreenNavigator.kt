@@ -1,18 +1,14 @@
 package com.example.tweetabook.screens.common.screennavigator
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import com.example.tweetabook.screens.main.MainFragment
-import com.ncapdevi.fragnav.FragNavController
-import com.theartofdev.edmodo.cropper.CropImage
 
 class ScreenNavigator(
     private val activity: FragmentActivity,
     savedInstanceState: Bundle?,
     private val frameLayoutId: Int
 ) {
-    private lateinit var fragNavController: FragNavController
+   /* private lateinit var fragNavController: FragNavController
 
     init {
         fragNavController = getFragNavController(savedInstanceState)
@@ -37,5 +33,5 @@ class ScreenNavigator(
 
     fun saveInstanceState(savedInstanceState: Bundle) {
         fragNavController.onSaveInstanceState(savedInstanceState)
-    }
+    }*/
 }
