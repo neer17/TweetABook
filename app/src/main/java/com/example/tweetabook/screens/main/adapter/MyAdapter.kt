@@ -1,4 +1,4 @@
-package com.example.tweetabook.screens.main
+package com.example.tweetabook.screens.main.adapter
 
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.api.load
 import com.example.tweetabook.R
 import com.example.tweetabook.common.Constants
-import com.example.tweetabook.screens.main.responses.TweetResponse
 import kotlinx.android.synthetic.main.tweet_card.view.*
 import java.util.*
 import javax.inject.Inject
@@ -27,7 +26,7 @@ constructor(adapterOnClickListener: AdapterOnClickListener) :
     }
 
     var listener = adapterOnClickListener
-    var data: MutableList<TweetResponse> = ArrayList()
+    var data: MutableList<AdapterDataClass> = ArrayList()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolderClass {
         return MyViewHolderClass(
@@ -49,19 +48,32 @@ constructor(adapterOnClickListener: AdapterOnClickListener) :
         payloads: MutableList<Any>
     ) {
         super.onBindViewHolder(holder, position, payloads)
-        if (payloads.firstOrNull() != null) {
+        Log.d(TAG, "onBindViewHolder: payload: $payloads")
+
+        if (payloads.lastOrNull() != null) {
             with(holder.itemView) {
-                (payloads.first() as Bundle).getDouble("progress").also { progress ->
-                    Log.d(TAG, "bindViewHolder: position: $position \n progress: $progress")
-                    if (progress == 1.0) {
+                Log.d(
+                    TAG,
+                    "bindViewHolder: position: $position \n payload last: ${payloads.last()}"
+                )
+
+                (payloads.last() as Bundle).getDouble("progress").also { progress ->
+                    if (progress >= 0.8) {
                         holder.itemView.foreground =
                             ColorDrawable(resources.getColor(android.R.color.transparent))
                         progress_bar.visibility = View.GONE
-
                     } else {
                         holder.itemView.foreground =
                             ColorDrawable(resources.getColor(R.color.image_conversion_pending))
                         progress_bar.progress = (progress * 100).roundToInt()
+                    }
+                }
+
+                (payloads.last() as Bundle).getBoolean("translationCompleted").also {
+                    if (it) {
+                        holder.itemView.foreground =
+                            ColorDrawable(resources.getColor(android.R.color.transparent))
+                        progress_bar.visibility = View.GONE
                     }
                 }
             }
@@ -69,9 +81,17 @@ constructor(adapterOnClickListener: AdapterOnClickListener) :
     }
 
 
-    fun addData(response: TweetResponse) {
+    fun addData(response: AdapterDataClass) {
         data.add(response)
         notifyDataSetChanged()
+    }
+
+    fun updateData(adapterDataClass: AdapterDataClass) {
+        val index = data.indexOf(adapterDataClass)
+        data.removeAt(index)
+        data.add(index, adapterDataClass)
+
+        notifyItemChanged(index)
     }
 
     fun updateProgress(
@@ -85,6 +105,11 @@ constructor(adapterOnClickListener: AdapterOnClickListener) :
         }.let {
             data.indexOf(it)
         }
+
+        Log.d(
+            TAG,
+            "updateProgress: id: $id \t progress: $progress \t status: $status \t tweet: $tweet \n"
+        )
         if (status == Constants.RECOGNIZING_TEXT) {
             with(data[position]) {
                 this.progress = progress
@@ -94,15 +119,21 @@ constructor(adapterOnClickListener: AdapterOnClickListener) :
                 putDouble("progress", progress)
             })
         } else if (status == Constants.IMAGE_CONVERSION_COMPLETED) {
-            tweet?.let {
-                data[position].tweet = it
+//            Log.d(TAG, "updateProgress: image conversion completed")
+            with(data[position]) {
+                this.progress = progress
+                this.tweet = tweet
             }
+            //  to update the UI
+            notifyItemChanged(position, Bundle().apply {
+                putBoolean("translationCompleted", true)
+            })
         }
     }
 
     inner class MyViewHolderClass(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(
-            item: TweetResponse,
+            item: AdapterDataClass,
             position: Int
         ) = with(itemView) {
             val (_, imageUri, progress) = item

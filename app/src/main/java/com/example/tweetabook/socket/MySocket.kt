@@ -20,6 +20,9 @@ class MySocket() {
 
     private var socket: Socket = IO.socket(Constants.BASE_URL)
 
+    //  LIVE DATA
+    var socketResponse = MutableLiveData<ServerResponse>()
+
     //  Coroutine Scope
     private val job = Job()
     private val socketScope = CoroutineScope(job)
@@ -33,9 +36,6 @@ class MySocket() {
             socketResponse.value = serverResponse
         }
     }
-
-    //  LIVE DATA
-    var socketResponse = MutableLiveData<ServerResponse>()
 
     init {
         Log.d(TAG, "MySocket: ")

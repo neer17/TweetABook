@@ -1,7 +1,7 @@
 package com.example.tweetabook.common
 
 object Constants {
-    const val BASE_URL = "https://57b25cfb03f1.ngrok.io"
+    const val BASE_URL = "https://c0adbcbb94fc.ngrok.io"
 
     //  MySocket
     const val SOCKET_LISTEN_EVENT = "server response"
@@ -10,4 +10,8 @@ object Constants {
     //  STATUS FROM SERVER
     const val RECOGNIZING_TEXT = "recognizing text"
     const val IMAGE_CONVERSION_COMPLETED = "image conversion completed"
+
+    //  NetworkBoundResource class
+    const val NETWORK_TIMEOUT = 6000L
+    const val TESTING_NETWORK_DELAY = 0L // fake network delay for testing
 }

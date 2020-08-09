@@ -1,7 +1,6 @@
 package com.example.tweetabook.screens.main.viewmodel
 
 import android.content.Context
-import android.net.Uri
 import androidx.hilt.Assisted
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.MutableLiveData
@@ -30,12 +29,12 @@ constructor(
 
     val serverResponse = mainRepository.socketResponse()
 
-    fun uploadImageAndSendDownloadUriToServer(
+    fun uploadToStorageAndTranslate(
         id: String,
-        resultUri: Uri
+        localImageUri: String
     ) {
         viewModelScope.launch {
-            mainRepository.uploadedImageAndSendDownloadUriToServer(id, resultUri)
+            mainRepository.registerJobAndExecuteOnNetworkPresent(id, localImageUri)
             getFilesCount()
         }
     }
@@ -66,6 +65,13 @@ constructor(
     private suspend fun hideProgressBar() {
         withContext(Main) {
             context.showProgressBar(false)
+        }
+    }
+
+    fun removeJobWhenTranslationIsDone(id: String) {
+        val jobList = mainRepository.exposeJobList()
+        jobList.removeIf {
+            id == it.id
         }
     }
 }

@@ -3,8 +3,12 @@ package com.example.tweetabook.di
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
+import androidx.room.Room
 import com.example.tweetabook.api.MyBackendApi
 import com.example.tweetabook.common.Constants
+import com.example.tweetabook.db.AppDatabase
+import com.example.tweetabook.db.daos.TweetDAO
+import com.example.tweetabook.mappers.TweetMappers
 import com.example.tweetabook.screens.main.repository.DefaultMainRepository
 import com.example.tweetabook.screens.main.repository.MainRepository
 import com.example.tweetabook.socket.MySocket
@@ -26,25 +30,11 @@ import javax.inject.Singleton
 @Module
 @InstallIn(ApplicationComponent::class)
 object AppModule {
-    
-}
 
-@Module
-@InstallIn(ApplicationComponent::class)
-object MainRepositoryModule {
     @Singleton
     @Provides
-    fun provideMainRepository(mySocket: MySocket): MainRepository {
-        return DefaultMainRepository(mySocket)
-    }
+    fun provideTweetMapper(): TweetMappers = TweetMappers()
 
-}
-
-@Module
-@InstallIn(ApplicationComponent::class)
-object CommonAppModule {
-
-    @Singleton
     @Provides
     fun connectedToNetwork(@ApplicationContext context: Context): Boolean {
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -55,11 +45,40 @@ object CommonAppModule {
 
 @Module
 @InstallIn(ApplicationComponent::class)
+object MainRepositoryModule {
+    @Singleton
+    @Provides
+    fun provideMainRepository(mySocket: MySocket, tweetDAO: TweetDAO, networkPresent: Boolean): MainRepository {
+        return DefaultMainRepository(mySocket, tweetDAO, networkPresent)
+    }
+
+}
+
+@Module
+@InstallIn(ApplicationComponent::class)
+object RoomModule {
+    @Singleton
+    @Provides
+    fun provideAppDb(@ApplicationContext context: Context): AppDatabase {
+        return Room.databaseBuilder(context, AppDatabase::class.java, AppDatabase.DATABASE_NAME)
+            .fallbackToDestructiveMigration()
+            .build()
+    }
+
+    @Singleton
+    @Provides
+    fun provideTweetDao(db: AppDatabase): TweetDAO {
+        return db.getTweetDao()
+    }
+}
+
+@Module
+@InstallIn(ApplicationComponent::class)
 object SocketIOModule {
 
     @Singleton
     @Provides
-    fun getSocket() : MySocket =  MySocket()
+    fun getSocket(): MySocket = MySocket()
 }
 
 @Module

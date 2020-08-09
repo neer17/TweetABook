@@ -12,9 +12,9 @@ private const val TAG = "AppDebug: FirebaseUtils"
 
 val storage = Firebase.storage
 
-suspend fun uploadFile(fileUri: Uri): Uri? {
+suspend fun uploadFile(fileUri: String): Uri? {
     val storageRef = getStorageRef()
-    val uploadTask = storageRef.putFile(fileUri)
+    val uploadTask = storageRef.putFile(Uri.parse(fileUri))
     return try {
         uploadTask.await()
         val downloadUri = storageRef.downloadUrl.await()
