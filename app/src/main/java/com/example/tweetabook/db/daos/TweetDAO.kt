@@ -12,11 +12,15 @@ interface TweetDAO {
     @Query("SELECT * FROM tweets")
     fun getAllTweets(): LiveData<List<TweetEntity>?>
 
+    @Query("SELECT * FROM tweets")
+    fun getAllTweetsWithOutLiveData(): List<TweetEntity>?
+
+
     @Update
     fun updateTweet(vararg tweets: TweetEntity): Int
 
     @Delete
-    fun deleteAll(tweets: List<TweetEntity>?)
+    fun deleteAll(tweets: List<TweetEntity>): Int
 
     @Query("UPDATE tweets SET tweet = :tweet WHERE id = :id")
     fun updateTranslatedText(id: String, tweet: String): Int

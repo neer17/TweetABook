@@ -1,5 +1,6 @@
 package com.example.tweetabook.screens.main.adapter
 
+import android.content.Context
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
@@ -10,14 +11,13 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.api.load
 import com.example.tweetabook.R
 import com.example.tweetabook.common.Constants
+import com.example.tweetabook.screens.common.showProgressBar
 import kotlinx.android.synthetic.main.tweet_card.view.*
 import java.util.*
-import javax.inject.Inject
 import kotlin.math.roundToInt
 
 class MyAdapter
-@Inject
-constructor(adapterOnClickListener: AdapterOnClickListener) :
+constructor(val context: Context, adapterOnClickListener: AdapterOnClickListener) :
     RecyclerView.Adapter<MyAdapter.MyViewHolderClass>() {
     private val TAG = "AppDebug: MyAdapter"
 
@@ -64,6 +64,9 @@ constructor(adapterOnClickListener: AdapterOnClickListener) :
         status: String,
         tweet: String?
     ) {
+        if (data.size == 0)
+            return
+
         val position = data.find {
             it.id == id
         }.let {
@@ -93,6 +96,13 @@ constructor(adapterOnClickListener: AdapterOnClickListener) :
                 putBoolean("translationCompleted", true)
             })
         }
+    }
+
+    fun clearData() {
+        context.showProgressBar(true)
+        data.clear()
+        notifyDataSetChanged()
+        context.showProgressBar(false)
     }
 
     inner class MyViewHolderClass(itemView: View) : RecyclerView.ViewHolder(itemView) {

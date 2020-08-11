@@ -7,7 +7,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.tweetabook.screens.common.showProgressBar
 import com.example.tweetabook.screens.main.repository.MainRepository
 import dagger.hilt.android.qualifiers.ActivityContext
 import kotlinx.coroutines.Dispatchers.IO
@@ -59,18 +58,6 @@ constructor(
     fun deleteAllTweets() {
         viewModelScope.launch(IO) {
             mainRepository.deleteAllTweets()
-        }
-    }
-
-    private suspend fun showProgressBar() {
-        withContext(Main) {
-            context.showProgressBar(true)
-        }
-    }
-
-    private suspend fun hideProgressBar() {
-        withContext(Main) {
-            context.showProgressBar(false)
         }
     }
 

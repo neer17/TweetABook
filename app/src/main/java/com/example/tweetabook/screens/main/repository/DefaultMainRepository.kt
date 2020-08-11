@@ -1,5 +1,6 @@
 package com.example.tweetabook.screens.main.repository
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import com.example.tweetabook.db.daos.TweetDAO
 import com.example.tweetabook.db.entities.TweetEntity
@@ -127,8 +128,11 @@ constructor(
     }
 
     override suspend fun deleteAllTweets() {
-        val allTweets = tweetDAO.getAllTweets().value
-        tweetDAO.deleteAll(allTweets)
+        val allTweets= tweetDAO.getAllTweetsWithOutLiveData()
+        allTweets?.let {
+            val tweetsDeleted = tweetDAO.deleteAll(allTweets)
+            Log.d(TAG, "deleteAllTweets: tweetsDeleted: $tweetsDeleted")
+        }
     }
 
     override fun socketEmitEvent(json: JsonObject) {

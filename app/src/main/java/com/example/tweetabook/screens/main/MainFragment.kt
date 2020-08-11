@@ -1,6 +1,7 @@
 package com.example.tweetabook.screens.main
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -21,6 +22,7 @@ import com.theartofdev.edmodo.cropper.CropImage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_main.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
@@ -45,6 +47,10 @@ class MainFragment : Fragment(R.layout.fragment_main), MyAdapter.AdapterOnClickL
         super.onActivityCreated(savedInstanceState)
         recyclerView()
         registerClickListeners()
+    }
+
+    override fun onStart() {
+        super.onStart()
         subscribers()
     }
 
@@ -55,14 +61,20 @@ class MainFragment : Fragment(R.layout.fragment_main), MyAdapter.AdapterOnClickL
                 val adapterDataClass = tweetMappers.mapFromEntity(it)
                 val dataPresent = adapter.data.contains(adapterDataClass)
 
-                Log.d(
-                    TAG,
-                    "subscribers: data present: $dataPresent \t adapterdataclass: $adapterDataClass \n"
-                )
-                if (dataPresent) {
+                /* Log.d(
+                     TAG,
+                     "subscribers: data present: $dataPresent \t adapterdataclass: $adapterDataClass \n"
+                 )*/
+
+                if (dataPresent)
                     adapter.updateData(adapterDataClass)
-                } else
+                else
                     adapter.addData(adapterDataClass)
+            }
+
+            if (tweets == null || tweets.isEmpty()) {
+                Log.d(TAG, "subscribers: adapter cleared")
+                adapter.clearData()
             }
         })
 
@@ -84,6 +96,7 @@ class MainFragment : Fragment(R.layout.fragment_main), MyAdapter.AdapterOnClickL
             }
 
             lifecycleScope.launch(Dispatchers.Main) {
+                delay(200)
                 adapter.updateProgress(id, progress, status, tweet)
             }
         })
@@ -140,7 +153,7 @@ class MainFragment : Fragment(R.layout.fragment_main), MyAdapter.AdapterOnClickL
     }
 
     private fun recyclerView() {
-        adapter = MyAdapter(this)
+        adapter = MyAdapter(requireActivity() as Context, this)
         val recyclerView = recycler_view
         recyclerView.adapter = adapter
         val decoration = DividerItemDecoration(
