@@ -14,9 +14,10 @@ interface MainRepository {
 
     fun translateImageToUrl(id: String, downloadUri: String)
     suspend fun getFilesCount(): Int?
-    suspend fun deleteAll()
+    suspend fun emptyStorage()
     fun socketEmitEvent(json: JsonObject)
     fun socketResponse(): LiveData<ServerResponse>
 
     fun exposeJobList(): ArrayList<DefaultMainRepository.MyJob>
+    suspend fun deleteAllTweets()
 }

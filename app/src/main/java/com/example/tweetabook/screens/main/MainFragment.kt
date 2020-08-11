@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DividerItemDecoration
 import com.example.tweetabook.R
 import com.example.tweetabook.common.Constants
 import com.example.tweetabook.db.daos.TweetDAO
@@ -23,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
+
 
 @AndroidEntryPoint
 class MainFragment : Fragment(R.layout.fragment_main), MyAdapter.AdapterOnClickListener {
@@ -72,7 +74,7 @@ class MainFragment : Fragment(R.layout.fragment_main), MyAdapter.AdapterOnClickL
             Log.d(TAG, "subscribers: id: $id \t status: $status \t progress: $progress \n")
 
             //  remove the job from "jobList" when translation is done, updating the local db entry of tweet
-            if (status == Constants.IMAGE_CONVERSION_COMPLETED && progress == 1.0) {
+            if (status == Constants.IMAGE_CONVERSION_COMPLETED) {
                 viewModel.removeJobWhenTranslationIsDone(id)
                 lifecycleScope.launch(Dispatchers.IO) {
                     tweet?.let {
@@ -141,5 +143,10 @@ class MainFragment : Fragment(R.layout.fragment_main), MyAdapter.AdapterOnClickL
         adapter = MyAdapter(this)
         val recyclerView = recycler_view
         recyclerView.adapter = adapter
+        val decoration = DividerItemDecoration(
+            context,
+            DividerItemDecoration.VERTICAL
+        )
+        recyclerView.addItemDecoration(decoration)
     }
 }

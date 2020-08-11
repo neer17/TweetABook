@@ -49,10 +49,16 @@ constructor(
         }
     }
 
-    fun deleteAll() {
+    fun emptyStorage() {
         viewModelScope.launch(IO) {
-            mainRepository.deleteAll()
+            mainRepository.emptyStorage()
             getFilesCount()
+        }
+    }
+
+    fun deleteAllTweets() {
+        viewModelScope.launch(IO) {
+            mainRepository.deleteAllTweets()
         }
     }
 

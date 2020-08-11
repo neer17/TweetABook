@@ -6,6 +6,7 @@
         android:layout_width="match_parent"
         android:layout_height="80dp"
         android:orientation="vertical"
+        android:layout_marginTop="8dp"
         >
         <ProgressBar
             android:id="@+id/progress_bar"

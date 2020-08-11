@@ -122,8 +122,13 @@ constructor(
         return filesCount()
     }
 
-    override suspend fun deleteAll() {
+    override suspend fun emptyStorage() {
         deleteAllFiles()
+    }
+
+    override suspend fun deleteAllTweets() {
+        val allTweets = tweetDAO.getAllTweets().value
+        tweetDAO.deleteAll(allTweets)
     }
 
     override fun socketEmitEvent(json: JsonObject) {

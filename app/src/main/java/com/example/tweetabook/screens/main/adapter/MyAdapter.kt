@@ -38,54 +38,18 @@ constructor(adapterOnClickListener: AdapterOnClickListener) :
     override fun getItemCount() = data.size
 
     override fun onBindViewHolder(holder: MyViewHolderClass, position: Int) {
+        Log.d(TAG, "onBindViewHolder: version 1")
         holder.bind(data[position], position)
     }
-
-    //  when "notifyItemChanged" is called
-    override fun onBindViewHolder(
-        holder: MyViewHolderClass,
-        position: Int,
-        payloads: MutableList<Any>
-    ) {
-        super.onBindViewHolder(holder, position, payloads)
-        Log.d(TAG, "onBindViewHolder: payload: $payloads")
-
-        if (payloads.lastOrNull() != null) {
-            with(holder.itemView) {
-                Log.d(
-                    TAG,
-                    "bindViewHolder: position: $position \n payload last: ${payloads.last()}"
-                )
-
-                (payloads.last() as Bundle).getDouble("progress").also { progress ->
-                    if (progress >= 0.8) {
-                        holder.itemView.foreground =
-                            ColorDrawable(resources.getColor(android.R.color.transparent))
-                        progress_bar.visibility = View.GONE
-                    } else {
-                        holder.itemView.foreground =
-                            ColorDrawable(resources.getColor(R.color.image_conversion_pending))
-                        progress_bar.progress = (progress * 100).roundToInt()
-                    }
-                }
-
-                (payloads.last() as Bundle).getBoolean("translationCompleted").also {
-                    if (it) {
-                        holder.itemView.foreground =
-                            ColorDrawable(resources.getColor(android.R.color.transparent))
-                        progress_bar.visibility = View.GONE
-                    }
-                }
-            }
-        }
-    }
-
 
     fun addData(response: AdapterDataClass) {
         data.add(response)
         notifyDataSetChanged()
     }
 
+    /*
+    * When localImageUri -> firebaseImageUri and image is translated to tweet
+    */
     fun updateData(adapterDataClass: AdapterDataClass) {
         val index = data.indexOf(adapterDataClass)
         data.removeAt(index)
@@ -106,10 +70,10 @@ constructor(adapterOnClickListener: AdapterOnClickListener) :
             data.indexOf(it)
         }
 
-        Log.d(
-            TAG,
-            "updateProgress: id: $id \t progress: $progress \t status: $status \t tweet: $tweet \n"
-        )
+        /* Log.d(
+             TAG,
+             "updateProgress: id: $id \t progress: $progress \t status: $status \t tweet: $tweet \n"
+         )*/
         if (status == Constants.RECOGNIZING_TEXT) {
             with(data[position]) {
                 this.progress = progress
@@ -118,7 +82,7 @@ constructor(adapterOnClickListener: AdapterOnClickListener) :
             notifyItemChanged(position, Bundle().apply {
                 putDouble("progress", progress)
             })
-        } else if (status == Constants.IMAGE_CONVERSION_COMPLETED) {
+        } else if (status == Constants.IMAGE_CONVERSION_COMPLETED && tweet != null) {
 //            Log.d(TAG, "updateProgress: image conversion completed")
             with(data[position]) {
                 this.progress = progress
@@ -136,11 +100,18 @@ constructor(adapterOnClickListener: AdapterOnClickListener) :
             item: AdapterDataClass,
             position: Int
         ) = with(itemView) {
-            val (_, imageUri, progress) = item
-            with(progress_bar) {
-                max = 100
-                this.progress = (progress * 100).roundToInt()
+            val (_, imageUri, progress, _, tweet) = item
+
+            if (tweet == null) {
+                foreground =
+                    ColorDrawable(resources.getColor(R.color.image_conversion_pending))
+                progress_bar.progress = (progress * 100).roundToInt()
+            } else {
+                foreground =
+                    ColorDrawable(resources.getColor(android.R.color.transparent))
+                progress_bar.visibility = View.GONE
             }
+
             tweet_image_iv.load(imageUri)
 
             registerClickListener(position)

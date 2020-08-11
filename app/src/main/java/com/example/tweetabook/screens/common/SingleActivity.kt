@@ -59,11 +59,11 @@ class SingleActivity : AppCompatActivity() {
 
     private fun menuOnItemClick(id: Int): Boolean = when (id) {
         R.id.empty_storage -> {
-            viewModel.deleteAll()
+            viewModel.emptyStorage()
             true
         }
         R.id.purge_data -> {
-            //  TODO: delete all data from the main fragment
+            viewModel.deleteAllTweets()
             true
         }
         else -> false
