@@ -1,7 +1,7 @@
 package com.example.tweetabook.common
 
 object Constants {
-    const val BASE_URL = "https://7954bb1caf7f.ngrok.io"
+    const val BASE_URL = "https://18c821b604cb.ngrok.io"
 
     //  MySocket
     const val SOCKET_LISTEN_EVENT = "server response"

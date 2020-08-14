@@ -16,6 +16,7 @@ import com.example.tweetabook.db.daos.TweetDAO
 import com.example.tweetabook.db.entities.TweetEntity
 import com.example.tweetabook.mappers.TweetMappers
 import com.example.tweetabook.screens.main.adapter.MyAdapter
+import com.example.tweetabook.screens.main.repository.Jobs.UploadAndConversionJob
 import com.example.tweetabook.screens.main.viewmodel.MainViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.theartofdev.edmodo.cropper.CropImage
@@ -24,6 +25,7 @@ import kotlinx.android.synthetic.main.fragment_main.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 import javax.inject.Inject
 
@@ -38,44 +40,46 @@ class MainFragment : Fragment(R.layout.fragment_main), MyAdapter.AdapterOnClickL
     @Inject
     lateinit var tweetMappers: TweetMappers
 
-    private lateinit var adapter: MyAdapter
-
     private val viewModel: MainViewModel by activityViewModels()
 
+    private lateinit var adapter: MyAdapter
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         recyclerView()
         registerClickListeners()
-    }
-
-    override fun onStart() {
-        super.onStart()
         subscribers()
     }
 
-
     private fun subscribers() {
+        /*
+        * fired multiple times, initially when the app starts, then again multiple times when the tweets gets updated
+        */
         tweetDAO.getAllTweets().observe(viewLifecycleOwner, Observer { tweets ->
             tweets?.forEach {
                 val adapterDataClass = tweetMappers.mapFromEntity(it)
                 val dataPresent = adapter.data.contains(adapterDataClass)
 
-                /* Log.d(
-                     TAG,
-                     "subscribers: data present: $dataPresent \t adapterdataclass: $adapterDataClass \n"
-                 )*/
-
                 if (dataPresent)
                     adapter.updateData(adapterDataClass)
-                else
+                else {
                     adapter.addData(adapterDataClass)
+
+                    // TODO: write logic for the below cases
+                    //  create a job if any of the task is incomplete
+                    val imageUploaded = it.imageUploaded
+                    val imageConverted = it.imageConverted
+                    if (!imageUploaded) {
+
+                    }
+                    if (!imageConverted) {
+
+                    }
+                }
             }
 
-            if (tweets == null || tweets.isEmpty()) {
-                Log.d(TAG, "subscribers: adapter cleared")
+            if (tweets == null || tweets.isEmpty())
                 adapter.clearData()
-            }
         })
 
 
@@ -83,14 +87,26 @@ class MainFragment : Fragment(R.layout.fragment_main), MyAdapter.AdapterOnClickL
             //  changing progress in adapter
             val (id, progress, status, tweet) = it
 
-            Log.d(TAG, "subscribers: id: $id \t status: $status \t progress: $progress \n")
-
             //  remove the job from "jobList" when translation is done, updating the local db entry of tweet
             if (status == Constants.IMAGE_CONVERSION_COMPLETED) {
-                viewModel.removeJobWhenTranslationIsDone(id)
+                //  REMOVING the first job from ArrayList
                 lifecycleScope.launch(Dispatchers.IO) {
                     tweet?.let {
-                        tweetDAO.updateTranslatedText(id, it)
+                        Log.d(TAG, "subscribers: image conversion completed: ")
+
+                        tweetDAO.getTweetById(id)?.let {
+                            it[0].let { currentTweet ->
+                                currentTweet.imageConverted = true
+                                currentTweet.tweet = tweet
+
+                                //  updating tweet in db then removing the job
+                                val tweetUpdated = tweetDAO.updateTweet(currentTweet)
+                                Log.d(TAG, "subscribers: tweet updated in db")
+                                withContext(Dispatchers.Main) {
+                                    viewModel.removeJob()
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -98,6 +114,24 @@ class MainFragment : Fragment(R.layout.fragment_main), MyAdapter.AdapterOnClickL
             lifecycleScope.launch(Dispatchers.Main) {
                 delay(200)
                 adapter.updateProgress(id, progress, status, tweet)
+            }
+        })
+
+        viewModel.jobList.observe(viewLifecycleOwner, Observer {
+            it?.let {
+                val anyPendingJob = viewModel.getPendingJobStatus()
+
+                /*Log.d(
+                    TAG,
+                    "subscribers: total jobs left: ${it.size} \t pending jobs: $anyPendingJob"
+                )*/
+
+                if (!anyPendingJob && it.size > 0) {
+                    val job = it[0]
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        viewModel.executeJob(job)
+                    }
+                }
             }
         })
     }
@@ -113,13 +147,14 @@ class MainFragment : Fragment(R.layout.fragment_main), MyAdapter.AdapterOnClickL
                 val id = UUID.randomUUID().toString()
                 val initialTweetsEntity = TweetEntity(id, localImage)
 
-                //  local db entry
+                //  INSERT local db
                 lifecycleScope.launch(Dispatchers.IO) {
                     tweetDAO.insertTweet(initialTweetsEntity)
                 }
 
-                // upload image and set adapter
-                viewModel.uploadToStorageAndTranslate(id, localImage)
+                // REGISTER a job
+                val job = UploadAndConversionJob(id, localImage)
+                viewModel.addJob(job)
 
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 val error = result.error
@@ -153,7 +188,7 @@ class MainFragment : Fragment(R.layout.fragment_main), MyAdapter.AdapterOnClickL
     }
 
     private fun recyclerView() {
-        adapter = MyAdapter(requireActivity() as Context, this)
+        adapter = MyAdapter(requireActivity() as Context, lifecycleScope, this)
         val recyclerView = recycler_view
         recyclerView.adapter = adapter
         val decoration = DividerItemDecoration(

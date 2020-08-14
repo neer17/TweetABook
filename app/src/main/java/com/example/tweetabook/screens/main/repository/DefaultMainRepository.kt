@@ -2,11 +2,13 @@ package com.example.tweetabook.screens.main.repository
 
 import android.util.Log
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.example.tweetabook.db.daos.TweetDAO
 import com.example.tweetabook.db.entities.TweetEntity
 import com.example.tweetabook.firebase.deleteAllFiles
 import com.example.tweetabook.firebase.filesCount
 import com.example.tweetabook.firebase.uploadFile
+import com.example.tweetabook.screens.main.repository.Jobs.UploadAndConversionJob
 import com.example.tweetabook.socket.MySocket
 import com.example.tweetabook.socket.responses.ServerResponse
 import com.google.gson.JsonObject
@@ -25,99 +27,112 @@ constructor(
 ) : MainRepository {
     private val TAG = "AppDebug: MainRepository"
 
-    private val jobList = ArrayList<MyJob>()
-
-    data class MyJob(
-        val id: String,
-        val localImageUri: String,
-        var firebaseUploadDone: Boolean = false,
-        var translationDone: Boolean = false
-    )
-
-
-    override suspend fun registerJobAndExecuteOnNetworkPresent(id: String, localImageUri: String) {
-        jobList.add(MyJob(id, localImageUri))
-        uploadToStorageAndTranslate()
+    private val jobList: MutableLiveData<ArrayList<Jobs>> by lazy {
+        MutableLiveData<ArrayList<Jobs>>()
     }
 
-    override suspend fun uploadToStorageAndTranslate() {
-        jobList.forEach {
-            if (networkPresent) {
+    private val internalJobList = ArrayList<Jobs>()
+    private var anyPendingJobs: Boolean = false
+
+
+    override fun addJob(job: Jobs) {
+        Log.d(TAG, "addJob: ")
+        internalJobList.add(job)
+        jobList.value = internalJobList
+    }
+
+    override suspend fun executeJob(job: Jobs) {
+        if (!networkPresent)
+            return
+
+        when (job) {
+            is UploadAndConversionJob -> {
+                anyPendingJobs = true
                 coroutineScope {
-                    withContext(Dispatchers.IO) {
-                        val storageImageUri = uploadFile(it.localImageUri)
-                        it.firebaseUploadDone = true
-                        tweetDAO.updateTweet(
-                            TweetEntity(
-                                id = it.id,
-                                imageUri = storageImageUri.toString()
-                            )
-                        )
-                        translateImageToUrl(it.id, storageImageUri.toString())
-                    }
+                    val id = job.id
+                    val localImageUri = job.localImageUri
+
+                    val storageImageUri = uploadImage(id, localImageUri)
+                    convertImage(id, storageImageUri)
                 }
+            }
+            is Jobs.ConversionJob -> {
+                anyPendingJobs = true
+                convertImage(job.id, job.storageImageUri)
             }
         }
     }
 
-    /* @InternalCoroutinesApi
-     fun saveToDbAndUploadImageToFirebase(id: String, localImageUri: Uri): LiveData<TweetsEntity> {
-         return object : NetworkBoundResource<TweetsEntity, TweetsEntity>(
-             networkPresent,
-             true,
-             true,
-             true,
-             true
-         ) {
-             override suspend fun saveLocallyAndThenMakeNetworkRequest() {
-                 updateLocalDb(TweetsEntity(id, localImageUri))
-                 readCacheAndSetResult()
-             }
+    override fun removeJob() {
+        Log.d(TAG, "removeJob: ")
+        internalJobList.removeAt(0)
+        anyPendingJobs = false
+        jobList.value = internalJobList
+    }
 
-             override suspend fun readCacheAndSetResult() {
-                 withContext(Main) {
-                     result.addSource(loadFromCache()) {
-                         onCompleteJob(it)
+    /*
+    * upload local image to Firebase -> update tweet -> contact server
+    */
+    /* override suspend fun executeJob(job: MyJob) {
+         Log.d(TAG, "executeJob: ")
+         anyPendingJobs = true
+
+         if (!job.imageUploaded) {
+             job.let {
+                 if (networkPresent) {
+                     coroutineScope {
+                         withContext(Dispatchers.IO) {
+                             val storageImageUri = uploadFile(it.localImageUri)
+                             it.imageUploaded = true
+                             val updatedTweetCount = tweetDAO.updateTweet(
+                                 TweetEntity(
+                                     id = it.id,
+                                     imageUri = storageImageUri.toString()
+                                 )
+                             )
+                             convertImage(it.id, storageImageUri.toString())
+                         }
                      }
                  }
              }
-
-             override suspend fun handleApiSuccessResponse(response: TweetsEntity) {
-                 TODO("Not yet implemented")
-             }
-
-             override suspend fun createCall(): LiveData<TweetsEntity> {
-                 //  upload image to Firebase storage
-                 uploadFile(localImageUri)?.let { downloadUri ->
-                     //   send image to server
-                     sendDownloadUrlToServer(id, downloadUri)
+         } else if (!job.imageConverted) {
+             job.let {
+                 if (networkPresent) {
+                     coroutineScope {
+                         withContext(Dispatchers.IO) {
+                             convertImage(it.id, storageImageUri.toString())
+                         }
+                     }
                  }
              }
-
-             override suspend fun loadFromCache(): LiveData<TweetsEntity> {
-                 return tweetDAO.getAllTweets()
-             }
-
-             override suspend fun updateLocalDb(cacheObject: TweetsEntity?) {
-                 cacheObject?.let {
-                     tweetDAO.insertTweet(it)
-                 }
-             }
-
-             override fun setJob(job: Job) {
-                 TODO("Not yet implemented")
-             }
-         }.asLiveData()
+         }
      }*/
 
-    override fun translateImageToUrl(id: String, downloadUri: String) {
-        downloadUri.let {
-            val json = JsonObject()
-            json.addProperty("id", id)
-            json.addProperty("uri", it)
-            socketEmitEvent(json)
+    private suspend fun convertImage(id: String, storageImageUri: String) {
+        withContext(Dispatchers.IO) {
+            storageImageUri.let {
+                val json = JsonObject()
+                json.addProperty("id", id)
+                json.addProperty("uri", it)
+                socketEmitEvent(json)
+            }
         }
     }
+
+    private suspend fun uploadImage(id: String, localImageUri: String): String =
+        withContext(Dispatchers.IO) {
+            val storageImageUri = uploadFile(localImageUri)
+
+            val updatedTweetCount = tweetDAO.updateTweet(
+                TweetEntity(
+                    id = id,
+                    imageUri = storageImageUri.toString(),
+                    imageUploaded = true
+                )
+            )
+            storageImageUri.toString()
+        }
+
 
     override suspend fun getFilesCount(): Int? {
         return filesCount()
@@ -128,7 +143,7 @@ constructor(
     }
 
     override suspend fun deleteAllTweets() {
-        val allTweets= tweetDAO.getAllTweetsWithOutLiveData()
+        val allTweets = tweetDAO.getAllTweetsWithOutLiveData()
         allTweets?.let {
             val tweetsDeleted = tweetDAO.deleteAll(allTweets)
             Log.d(TAG, "deleteAllTweets: tweetsDeleted: $tweetsDeleted")
@@ -139,9 +154,17 @@ constructor(
         mySocket.socketEmitEvent(json)
     }
 
-    override fun socketResponse(): LiveData<ServerResponse> {
+    override fun exposeServerResponse(): LiveData<ServerResponse> {
         return mySocket.socketResponse
     }
 
-    override fun exposeJobList(): ArrayList<MyJob> = jobList
+    override fun exposeJobList(): LiveData<ArrayList<Jobs>> = jobList
+
+    override fun exposeAnyPendingJobs() = anyPendingJobs
+}
+
+sealed class Jobs() {
+    class UploadAndConversionJob(val id: String, val localImageUri: String) : Jobs()
+
+    class ConversionJob(val id: String, val storageImageUri: String) : Jobs()
 }

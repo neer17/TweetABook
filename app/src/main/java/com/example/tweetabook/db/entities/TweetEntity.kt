@@ -8,7 +8,9 @@ data class TweetEntity(
     @PrimaryKey(autoGenerate = false)
     var id: String,
     val imageUri: String,
+    var imageUploaded: Boolean = false,
     var tweet: String? = null,
+    var imageConverted: Boolean = false,
     var tweeted: Boolean = false
 ) {
 

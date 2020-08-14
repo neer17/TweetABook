@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.tweetabook.screens.main.repository.Jobs
 import com.example.tweetabook.screens.main.repository.MainRepository
 import dagger.hilt.android.qualifiers.ActivityContext
 import kotlinx.coroutines.Dispatchers.IO
@@ -26,19 +27,21 @@ constructor(
     //  LIVE DATA
     val totalFiles: MutableLiveData<Int?> = MutableLiveData()
 
-    val serverResponse = mainRepository.socketResponse()
+    val serverResponse = mainRepository.exposeServerResponse()
+    val jobList = mainRepository.exposeJobList()
 
-    fun uploadToStorageAndTranslate(
-        id: String,
-        localImageUri: String
-    ) {
-        viewModelScope.launch {
-            mainRepository.registerJobAndExecuteOnNetworkPresent(id, localImageUri)
-            getFilesCount()
-        }
+    suspend fun executeJob(job: Jobs) {
+        mainRepository.executeJob(job)
     }
 
-    //  update the file count in toolbar
+    fun addJob(job: Jobs) {
+        mainRepository.addJob(job)
+    }
+
+    fun removeJob() {
+        mainRepository.removeJob()
+    }
+
     fun getFilesCount() {
         viewModelScope.launch(IO) {
             val value = mainRepository.getFilesCount()
@@ -61,10 +64,5 @@ constructor(
         }
     }
 
-    fun removeJobWhenTranslationIsDone(id: String) {
-        val jobList = mainRepository.exposeJobList()
-        jobList.removeIf {
-            id == it.id
-        }
-    }
+    fun getPendingJobStatus() = mainRepository.exposeAnyPendingJobs()
 }
