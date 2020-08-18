@@ -28,6 +28,7 @@ constructor(
     val totalFiles: MutableLiveData<Int?> = MutableLiveData()
 
     val serverResponse = mainRepository.exposeServerResponse()
+    val errorResponse = mainRepository.exposeServerError()
     val jobList = mainRepository.exposeJobList()
 
     suspend fun executeJob(job: Jobs) {

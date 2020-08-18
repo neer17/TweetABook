@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
 
     >
     <item
@@ -10,4 +11,11 @@
         android:id="@+id/purge_data"
         android:title="Purge Data" />
 
+    <item
+        android:id="@+id/error_menu_item"
+        android:icon="@drawable/ic_baseline_error_outline_24"
+        android:title="Error Indicator"
+        android:visible="false"
+        app:showAsAction="always"
+        />
 </menu>

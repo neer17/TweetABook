@@ -1,6 +1,7 @@
 package com.example.tweetabook.screens.main.repository
 
 import androidx.lifecycle.LiveData
+import com.example.tweetabook.socket.responses.ErrorResponse
 import com.example.tweetabook.socket.responses.ServerResponse
 import com.google.gson.JsonObject
 
@@ -16,6 +17,7 @@ interface MainRepository {
     fun socketEmitEvent(json: JsonObject)
 
     fun exposeServerResponse(): LiveData<ServerResponse>
+    fun exposeServerError(): LiveData<ErrorResponse>
     fun exposeJobList(): LiveData<ArrayList<Jobs>>
     fun exposeAnyPendingJobs(): Boolean
 }

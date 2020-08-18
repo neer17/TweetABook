@@ -1,6 +1,7 @@
 package com.example.tweetabook.screens.common
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -43,6 +44,14 @@ class SingleActivity : AppCompatActivity() {
         viewModel.totalFiles.observe(this, Observer { totalFiles ->
             totalFiles?.let {
                 toolbar.toolbar_count_tv.text = totalFiles.toString()
+            }
+        })
+
+        viewModel.errorResponse.observe(this, Observer {
+            Log.d(TAG, "subscribe: error response: $it")
+            toolbar.menu?.let {
+                val errorMenuItem = it.findItem(R.id.error_menu_item)
+                errorMenuItem.isVisible = true
             }
         })
     }

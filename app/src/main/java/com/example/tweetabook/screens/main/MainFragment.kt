@@ -16,6 +16,7 @@ import com.example.tweetabook.db.daos.TweetDAO
 import com.example.tweetabook.db.entities.TweetEntity
 import com.example.tweetabook.mappers.TweetMappers
 import com.example.tweetabook.screens.main.adapter.MyAdapter
+import com.example.tweetabook.screens.main.repository.Jobs.ConversionJob
 import com.example.tweetabook.screens.main.repository.Jobs.UploadAndConversionJob
 import com.example.tweetabook.screens.main.viewmodel.MainViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -69,11 +70,15 @@ class MainFragment : Fragment(R.layout.fragment_main), MyAdapter.AdapterOnClickL
                     //  create a job if any of the task is incomplete
                     val imageUploaded = it.imageUploaded
                     val imageConverted = it.imageConverted
+
+                    val id = it.id
+                    val imageUri = it.imageUri
+
                     if (!imageUploaded) {
-
+                        viewModel.addJob(UploadAndConversionJob(id, imageUri))
                     }
-                    if (!imageConverted) {
-
+                    else if (!imageConverted) {
+                        viewModel.addJob(ConversionJob(id, imageUri))
                     }
                 }
             }
@@ -101,7 +106,9 @@ class MainFragment : Fragment(R.layout.fragment_main), MyAdapter.AdapterOnClickL
 
                                 //  updating tweet in db then removing the job
                                 val tweetUpdated = tweetDAO.updateTweet(currentTweet)
-                                Log.d(TAG, "subscribers: tweet updated in db")
+                                val message =
+                                    if (tweetUpdated == 1) "tweet updated" else "tweet didnt get updated"
+                                Log.d(TAG, "subscribers: $message")
                                 withContext(Dispatchers.Main) {
                                     viewModel.removeJob()
                                 }
@@ -151,10 +158,6 @@ class MainFragment : Fragment(R.layout.fragment_main), MyAdapter.AdapterOnClickL
                 lifecycleScope.launch(Dispatchers.IO) {
                     tweetDAO.insertTweet(initialTweetsEntity)
                 }
-
-                // REGISTER a job
-                val job = UploadAndConversionJob(id, localImage)
-                viewModel.addJob(job)
 
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 val error = result.error

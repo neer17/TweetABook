@@ -10,6 +10,7 @@ import com.example.tweetabook.firebase.filesCount
 import com.example.tweetabook.firebase.uploadFile
 import com.example.tweetabook.screens.main.repository.Jobs.UploadAndConversionJob
 import com.example.tweetabook.socket.MySocket
+import com.example.tweetabook.socket.responses.ErrorResponse
 import com.example.tweetabook.socket.responses.ServerResponse
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
@@ -65,7 +66,7 @@ constructor(
 
     override fun removeJob() {
         Log.d(TAG, "removeJob: ")
-        internalJobList.removeAt(0)
+        if (internalJobList.isNullOrEmpty()) internalJobList.removeAt(0)
         anyPendingJobs = false
         jobList.value = internalJobList
     }
@@ -156,6 +157,10 @@ constructor(
 
     override fun exposeServerResponse(): LiveData<ServerResponse> {
         return mySocket.socketResponse
+    }
+
+    override fun exposeServerError(): LiveData<ErrorResponse> {
+        return mySocket.serverErrorResponse
     }
 
     override fun exposeJobList(): LiveData<ArrayList<Jobs>> = jobList

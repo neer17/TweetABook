@@ -3,6 +3,7 @@ package com.example.tweetabook.socket
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.example.tweetabook.common.Constants
+import com.example.tweetabook.socket.responses.ErrorResponse
 import com.example.tweetabook.socket.responses.ServerResponse
 import com.github.nkzawa.emitter.Emitter
 import com.github.nkzawa.socketio.client.IO
@@ -22,18 +23,27 @@ class MySocket() {
 
     //  LIVE DATA
     var socketResponse = MutableLiveData<ServerResponse>()
+    val serverErrorResponse = MutableLiveData<ErrorResponse>()
 
     //  Coroutine Scope
     private val job = Job()
     private val socketScope = CoroutineScope(job)
 
-    //  listener
-    private var listener: Emitter.Listener? = Emitter.Listener { args ->
+    private var responseListener: Emitter.Listener? = Emitter.Listener { args ->
         val serverResponse =
             Gson().fromJson<ServerResponse>(args[0] as String, ServerResponse::class.java)
 
         socketScope.launch(Dispatchers.Main) {
             socketResponse.value = serverResponse
+        }
+    }
+
+    private var errorListener: Emitter.Listener? = Emitter.Listener { args ->
+        val errorResponse =
+            Gson().fromJson<ErrorResponse>(args[0] as String, ErrorResponse::class.java)
+
+        socketScope.launch(Dispatchers.Main) {
+            serverErrorResponse.value = errorResponse
         }
     }
 
@@ -53,7 +63,7 @@ class MySocket() {
     fun socketIODisconnection() {
         try {
             socket.disconnect()
-            listener = null
+            responseListener = null
             job.cancel()
         } catch (e: URISyntaxException) {
             Log.e(TAG, "socketIOConnection: ", e)
@@ -65,7 +75,8 @@ class MySocket() {
     }
 
     private fun socketListenEvent() {
-        socket.on(Constants.SOCKET_LISTEN_EVENT, listener)
+        socket.on(Constants.SOCKET_LISTEN_EVENT, responseListener)
+        socket.on(Constants.SOCKET_ERROR_LISTEN_EVENT, errorListener)
     }
 }
 
