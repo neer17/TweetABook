@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tweetabook.screens.main.repository.Jobs
 import com.example.tweetabook.screens.main.repository.MainRepository
+import com.google.gson.JsonObject
 import dagger.hilt.android.qualifiers.ActivityContext
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
@@ -66,4 +67,8 @@ constructor(
     }
 
     fun getPendingJobStatus() = mainRepository.exposeAnyPendingJobs()
+
+    suspend fun tweet(tweetObject: JsonObject): Boolean {
+        return mainRepository.tweet(tweetObject)
+    }
 }

@@ -48,8 +48,8 @@ object AppModule {
 object MainRepositoryModule {
     @Singleton
     @Provides
-    fun provideMainRepository(mySocket: MySocket, tweetDAO: TweetDAO, networkPresent: Boolean): MainRepository {
-        return DefaultMainRepository(mySocket, tweetDAO, networkPresent)
+    fun provideMainRepository(mySocket: MySocket, tweetDAO: TweetDAO, networkPresent: Boolean, backendApi: MyBackendApi): MainRepository {
+        return DefaultMainRepository(mySocket, tweetDAO, networkPresent, backendApi)
     }
 
 }
@@ -124,5 +124,4 @@ object RetrofitModule {
         return getRetrofit()
             .create(MyBackendApi::class.java)
     }
-
 }

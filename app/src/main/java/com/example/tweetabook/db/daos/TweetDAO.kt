@@ -16,7 +16,7 @@ interface TweetDAO {
     fun getAllTweetsWithOutLiveData(): List<TweetEntity>?
 
     @Query("SELECT * FROM tweets WHERE id = :id")
-    fun getTweetById(id: String): List<TweetEntity>?
+    fun getTweetById(id: String): TweetEntity?
 
     @Update
     fun updateTweet(vararg tweets: TweetEntity): Int

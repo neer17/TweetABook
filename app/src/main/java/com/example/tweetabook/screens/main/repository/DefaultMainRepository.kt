@@ -3,6 +3,7 @@ package com.example.tweetabook.screens.main.repository
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.tweetabook.api.MyBackendApi
 import com.example.tweetabook.db.daos.TweetDAO
 import com.example.tweetabook.db.entities.TweetEntity
 import com.example.tweetabook.firebase.deleteAllFiles
@@ -24,7 +25,8 @@ class DefaultMainRepository
 constructor(
     val mySocket: MySocket,
     val tweetDAO: TweetDAO,
-    val networkPresent: Boolean
+    val networkPresent: Boolean,
+    val backendApi: MyBackendApi
 ) : MainRepository {
     private val TAG = "AppDebug: MainRepository"
 
@@ -42,9 +44,18 @@ constructor(
         jobList.value = internalJobList
     }
 
+    override fun removeJob() {
+        Log.d(TAG, "removeJob: ")
+        if (!internalJobList.isNullOrEmpty()) internalJobList.removeAt(0)
+        anyPendingJobs = false
+        jobList.value = internalJobList
+    }
+
     override suspend fun executeJob(job: Jobs) {
-        if (!networkPresent)
+        if (!networkPresent) {
+            // TODO: show toast
             return
+        }
 
         when (job) {
             is UploadAndConversionJob -> {
@@ -64,62 +75,6 @@ constructor(
         }
     }
 
-    override fun removeJob() {
-        Log.d(TAG, "removeJob: ")
-        if (internalJobList.isNullOrEmpty()) internalJobList.removeAt(0)
-        anyPendingJobs = false
-        jobList.value = internalJobList
-    }
-
-    /*
-    * upload local image to Firebase -> update tweet -> contact server
-    */
-    /* override suspend fun executeJob(job: MyJob) {
-         Log.d(TAG, "executeJob: ")
-         anyPendingJobs = true
-
-         if (!job.imageUploaded) {
-             job.let {
-                 if (networkPresent) {
-                     coroutineScope {
-                         withContext(Dispatchers.IO) {
-                             val storageImageUri = uploadFile(it.localImageUri)
-                             it.imageUploaded = true
-                             val updatedTweetCount = tweetDAO.updateTweet(
-                                 TweetEntity(
-                                     id = it.id,
-                                     imageUri = storageImageUri.toString()
-                                 )
-                             )
-                             convertImage(it.id, storageImageUri.toString())
-                         }
-                     }
-                 }
-             }
-         } else if (!job.imageConverted) {
-             job.let {
-                 if (networkPresent) {
-                     coroutineScope {
-                         withContext(Dispatchers.IO) {
-                             convertImage(it.id, storageImageUri.toString())
-                         }
-                     }
-                 }
-             }
-         }
-     }*/
-
-    private suspend fun convertImage(id: String, storageImageUri: String) {
-        withContext(Dispatchers.IO) {
-            storageImageUri.let {
-                val json = JsonObject()
-                json.addProperty("id", id)
-                json.addProperty("uri", it)
-                socketEmitEvent(json)
-            }
-        }
-    }
-
     private suspend fun uploadImage(id: String, localImageUri: String): String =
         withContext(Dispatchers.IO) {
             val storageImageUri = uploadFile(localImageUri)
@@ -133,6 +88,17 @@ constructor(
             )
             storageImageUri.toString()
         }
+
+    private suspend fun convertImage(id: String, storageImageUri: String) {
+        withContext(Dispatchers.IO) {
+            storageImageUri.let {
+                val json = JsonObject()
+                json.addProperty("id", id)
+                json.addProperty("uri", it)
+                socketEmitEvent(json)
+            }
+        }
+    }
 
 
     override suspend fun getFilesCount(): Int? {
@@ -153,6 +119,24 @@ constructor(
 
     override fun socketEmitEvent(json: JsonObject) {
         mySocket.socketEmitEvent(json)
+    }
+
+    override suspend fun tweet(tweetObject: JsonObject): Boolean {
+        var isTweeted = false
+
+        withContext(Dispatchers.IO) {
+            val response = backendApi.sendTweet(tweetObject).execute()
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    isTweeted = true
+                }
+            } else {
+                Log.e(TAG, "tweet server error: ", Throwable(response.errorBody().toString()))
+                isTweeted = false
+            }
+        }
+
+        return isTweeted
     }
 
     override fun exposeServerResponse(): LiveData<ServerResponse> {

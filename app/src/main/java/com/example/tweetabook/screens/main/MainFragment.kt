@@ -20,6 +20,7 @@ import com.example.tweetabook.screens.main.repository.Jobs.ConversionJob
 import com.example.tweetabook.screens.main.repository.Jobs.UploadAndConversionJob
 import com.example.tweetabook.screens.main.viewmodel.MainViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.gson.JsonObject
 import com.theartofdev.edmodo.cropper.CropImage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_main.*
@@ -61,23 +62,17 @@ class MainFragment : Fragment(R.layout.fragment_main), MyAdapter.AdapterOnClickL
                 val adapterDataClass = tweetMappers.mapFromEntity(it)
                 val dataPresent = adapter.data.contains(adapterDataClass)
 
+                //  whenever tweet is updated
                 if (dataPresent)
                     adapter.updateData(adapterDataClass)
                 else {
                     adapter.addData(adapterDataClass)
 
-                    // TODO: write logic for the below cases
-                    //  create a job if any of the task is incomplete
-                    val imageUploaded = it.imageUploaded
-                    val imageConverted = it.imageConverted
-
-                    val id = it.id
-                    val imageUri = it.imageUri
+                    val (id, imageUri, imageUploaded, _, imageConverted, _) = it
 
                     if (!imageUploaded) {
                         viewModel.addJob(UploadAndConversionJob(id, imageUri))
-                    }
-                    else if (!imageConverted) {
+                    } else if (!imageConverted) {
                         viewModel.addJob(ConversionJob(id, imageUri))
                     }
                 }
@@ -99,21 +94,21 @@ class MainFragment : Fragment(R.layout.fragment_main), MyAdapter.AdapterOnClickL
                     tweet?.let {
                         Log.d(TAG, "subscribers: image conversion completed: ")
 
-                        tweetDAO.getTweetById(id)?.let {
-                            it[0].let { currentTweet ->
-                                currentTweet.imageConverted = true
-                                currentTweet.tweet = tweet
+                        tweetDAO.getTweetById(id)?.let { currentTweet ->
+                            currentTweet.imageConverted = true
+                            currentTweet.tweet = tweet
 
-                                //  updating tweet in db then removing the job
-                                val tweetUpdated = tweetDAO.updateTweet(currentTweet)
-                                val message =
-                                    if (tweetUpdated == 1) "tweet updated" else "tweet didnt get updated"
-                                Log.d(TAG, "subscribers: $message")
-                                withContext(Dispatchers.Main) {
-                                    viewModel.removeJob()
-                                }
+                            //  updating tweet in db then removing the job
+                            val tweetUpdated = tweetDAO.updateTweet(currentTweet)
+                            val message =
+                                if (tweetUpdated == 1) "tweet updated" else "tweet didn't get updated"
+                            Log.d(TAG, "subscribers: $message")
+
+                            withContext(Dispatchers.Main) {
+                                viewModel.removeJob()
                             }
                         }
+
                     }
                 }
             }
@@ -128,10 +123,10 @@ class MainFragment : Fragment(R.layout.fragment_main), MyAdapter.AdapterOnClickL
             it?.let {
                 val anyPendingJob = viewModel.getPendingJobStatus()
 
-                /*Log.d(
+                Log.d(
                     TAG,
                     "subscribers: total jobs left: ${it.size} \t pending jobs: $anyPendingJob"
-                )*/
+                )
 
                 if (!anyPendingJob && it.size > 0) {
                     val job = it[0]
@@ -167,13 +162,28 @@ class MainFragment : Fragment(R.layout.fragment_main), MyAdapter.AdapterOnClickL
     }
 
     override fun onClickTweetItem(position: Int) {
-        val (_, _, _, _, tweet) = adapter.data[position]
+        val (id, _, _, _, tweet) = adapter.data[position]
         tweet?.let {
             MaterialAlertDialogBuilder(getContext())
                 .setTitle("Do you want to tweet it?")
                 .setMessage(tweet)
                 .setPositiveButton("Confirm") { dialog, which ->
-                    //  tweet it
+                    lifecycleScope.launch {
+                        val tweetObject = JsonObject()
+                        tweetObject.addProperty("tweet", tweet)
+                        val isTweeted = viewModel.tweet(tweetObject)
+                        if (isTweeted) {
+                            val currentTweet = tweetDAO.getTweetById(id)
+                            currentTweet?.let {
+                                it.tweeted = true
+                                val tweetUpdated = tweetDAO.updateTweet(it) > 1
+                                Log.d(
+                                    TAG,
+                                    "onClickTweetItem: tweet updated after tweeting: $tweetUpdated"
+                                )
+                            }
+                        }
+                    }
                 }
                 .setNegativeButton("Cancel") { dialog, which ->
                     dialog.dismiss()

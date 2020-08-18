@@ -20,4 +20,6 @@ interface MainRepository {
     fun exposeServerError(): LiveData<ErrorResponse>
     fun exposeJobList(): LiveData<ArrayList<Jobs>>
     fun exposeAnyPendingJobs(): Boolean
+
+    suspend fun tweet(tweetObject: JsonObject): Boolean
 }

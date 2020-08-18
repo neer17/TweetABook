@@ -9,7 +9,6 @@ sealed class GenericApiResponse<T> {
     companion object {
         private val TAG: String = "AppDebug"
 
-
         fun <T> create(error: Throwable): ApiErrorResponse<T> {
             return ApiErrorResponse(
                 error.message ?: "unknown error"
